@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create local structure 
-mkdir /root/Scans /root/EyeWitness /root/Notes /root/Cracked /root/Uncracked
+mkdir /root/cptc
 cd /root
 current_dir=`pwd`
 
@@ -11,18 +11,17 @@ mkdir privesc
 export DEBIAN_FRONTEND=noninteractive
 
 
-echo 'glist () {
-    gdrive list -m 1000 | grep -i $1
-}
-
-gup () {
-    gdrive sync upload $1 $(gdrive list -m 1000 | grep -i $2 | awk '{print $1}')
-}
-
-gdown () {
-    gdrive sync download $(gdrive list -m 1000 | grep -i $1 | awk '{print $1}') $2
-}' >> /root/.bashrc
-
+echo -e "glist () {" >> ~/.bashrc
+echo -e "    gdrive list -m 1000 | grep -i \$1" >> ~/.bashrc
+echo -e "}" >> ~/.bashrc
+echo -e "" >> ~/.bashrc
+echo -e "gup () {" >> ~/.bashrc
+echo -e "    gdrive sync upload \$1 \$(gdrive list -m 1000 | grep -i \$2 | awk '{print \$1}')" >> ~/.bashrc
+echo -e "}" >> ~/.bashrc
+echo -e "" >> ~/.bashrc
+echo -e "gdown () {" >> ~/.bashrc
+echo -e "    gdrive sync download \$(gdrive list -m 1000 | grep -i \$1 | awk '{print \$1}') \$2" >> ~/.bashrc
+echo -e "}" >> ~/.bashrc
 
 
 # Doing this first so that there is time for docker container to update network vulnerabilties while script runs
@@ -106,6 +105,7 @@ echo '[+] DOWNLOAD AND SETUP GDRIVE BINARY'
 wget -O /usr/bin/gdrive https://github.com/gdrive-org/gdrive/releases/download/2.1.0/gdrive-linux-x64
 chmod u+x /usr/bin/gdrive
 
-gdrive about
+source ~/.bashrc
 
+gdrive about
 
