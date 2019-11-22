@@ -46,8 +46,15 @@ nmap -sU --max-retries 2 -T4 -v -oA basic_udp -iL live_hosts
 ```
 
 #### EyeWitness Scan
+
+Off of `Nmap` Scan
 ```
-python3 EyeWitness -x nmapscan.xml --web -d directory_name
+python3 EyeWitness.py -x nmapscan.xml --web -d directory_name
+```
+
+Off of List of URLS
+```
+python3 Eyewitness.py -f urls.txt --web -d directory_name
 ```
 
 Now go to `report.html` in your directory, and open it up in firefox.
