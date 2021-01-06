@@ -74,4 +74,8 @@ echo ''
 echo '[+] INSTALLING VIM'
 apt install vim -y
 
+#Clone Evil-winrm
+sudo gem install winrm winrm-fs stringio
+git clone https://github.com/Hackplayers/evil-winrm.git
+
 source ~/.bashrc
