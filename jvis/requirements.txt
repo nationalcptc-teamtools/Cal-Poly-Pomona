@@ -1,4 +1,4 @@
-django == 3.2
+django == 3.2.5
 django-extensions
 beautifulsoup4 == 4.9.3
 soupsieve>1.2
