@@ -90,6 +90,15 @@ class Beautifier:
                             json_port['script'] = p.script.get('output')
                         except:
                             json_port['script'] = None
+                        
+                        try:
+                            extra_scripts = p.find_all('script')
+                        except:
+                            extra_scripts = None
+                        
+                        if extra_scripts:
+                            for s in extra_scripts:
+                                json_port['script'] += "\n{}".format(s.get('output')) 
                         json_services.append(json_port)
 
                 json_host['services'] = json_services
