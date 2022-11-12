@@ -1,0 +1,95 @@
+{{template "header.html" .}}
+<section class="section">
+  <div class="container">
+    <h1 class="title">
+      Profile
+    </h1>
+
+    <div class="columns">
+      <div class="column is-one-fifth">{{template "menu.html" .}}</div>
+      <div class="column is-four-fifths">
+        <div style="background-color: whitesmoke; padding: 10px;">
+            {{if .error }}
+            <div class="notification is-danger is-light">
+              {{.error}}
+            </div>
+            {{end}}
+	    <div class="box">
+	    <h1 class="title">Profile Settings</h1>
+	      <table class="table is-fullwidth">
+		<tr>
+		  <td>
+		    <form>
+		      <div class="container">
+			<input class="input" type="hidden" name="id" value="{{ .content.ID }}">
+			<input class="input" type="hidden" name="name" value="color">
+			<label class="label">Profile Color</label>
+			<div class="field has-addons">
+			  <div class="control">
+			    <input name="value" class="input" style="width:100px" type="color" placeholder="Enter Color HEX" value="{{ .content.Color }}">
+			  </div>
+			  <div class="control">
+			    <button name="submit" class="button is-link" >Apply</button>
+			  </div>
+			</div>
+			<p name="color-error"></p> 
+		      </div>
+		    </form>
+		  </td>
+		</tr>
+		<tr>
+		  <td>
+		    <form>
+		      <div class="container">
+			<input class="input" type="hidden" name="id" value="{{ .content.ID }}">
+			<input class="input" type="hidden" name="name" value="password">
+			<label class="label">Change Account Password</label>
+			<div class="field has-addons">
+			  <div class="control">
+			    <input name="value" class="input" type="text" placeholder="Enter new password">
+			  </div>
+			  <div class="control">
+			    <button name="submit" class="button is-link" >Apply</button>
+			  </div>
+			</div>
+			<p name="color-error"></p> 
+		      </div>
+		    </form>
+		  </td>
+		</tr>
+		<tr>
+		  <td>
+		    <a class="button is-link" href="/logout">Logout</button>
+		  </td>
+		</tr>
+	      </table>
+	    </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+    $(document).ready(function () {
+      $("[name='submit']").on("click", function (event) {
+        var $form = $(this).closest('form');
+        var $name = $form.find('input[name="name"]').val();
+        var formData = {
+          id: $form.find('input[name="id"]').val(),
+          value: $form.find('[name="value"]').val(),
+        };
+
+        $.ajax({
+          type: "POST",
+          url: "/api/update/"+$name,
+          data: formData,
+          dataType: "json",
+          encode: true,
+        }).done(function (data) {
+          console.log(data);
+        });
+        event.preventDefault();
+      });
+    });
+</script>
+{{template "footer.html"}}
