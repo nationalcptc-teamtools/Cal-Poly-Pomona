@@ -16,7 +16,6 @@ parser = argparse.ArgumentParser(add_help = True, description = "PSEXEC like fun
 
 parser.add_argument('target', action='store', help='[[domain/]username[:password]@]<targetName or address>')
 parser.add_argument('-service-name', action='store', metavar="service_name", default = '', help='The name of the service to create that will be used to trigger the payload')
-parser.add_argument('-remote-binary-name', action='store', metavar="remote_binary_name", default = None, help='This will be the name of the executable uploaded on the target')
 parser.add_argument('-file', action='store', help="The service binary to upload")
 parser.add_argument('-debug', action='store_true', help='Turn DEBUG output ON')
 
