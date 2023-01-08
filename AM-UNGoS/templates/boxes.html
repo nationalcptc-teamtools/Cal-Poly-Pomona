@@ -1,0 +1,223 @@
+{{template "header.html" .}}
+<section class="section">
+  <div class="container">
+    <h1 class="title">
+      Boxes
+    </h1>
+
+    <div class="columns">
+      <div class="column is-one-fifth">{{template "menu.html" .}}</div>
+      <div class="column is-four-fifths">
+          <div style="background-color: whitesmoke; padding: 10px;">
+            {{if .error }}
+            <div class="notification is-danger is-light">
+              {{.error}}
+            </div>
+            {{end}}
+            {{ range .content }}
+            <button class="collapsible" style="background-color: {{.Color}}">
+              {{ .IP }}{{if .Hostname}} ({{.Hostname}}){{end}}{{if .Ports}} | {{ len .Ports}} ports open{{end}}{{if .Codename}} | Codename: {{.Codename}}{{end}}
+            </button>
+              {{ $assignee := .Assignee }}
+            <div class="content">
+              <div class="box--header">
+                <form action="/dashboard/boxes/assign-assignee" method="post">
+                    <div class="field">
+                      <label class="label">Assignee</label>
+                      <input class="input" type="hidden" name="ip" value="{{ .IP }}">
+                      <div class="select">
+                          <select>
+                              {{ range $i, $name := $.usernames }}
+                                    <option value={{$i}} {{ if eq $assignee $i }}selected="selected"{{end}}>{{$name}}</option>
+                              {{ end }}
+                          </select>
+                      </div>
+                    </div>
+                </form>
+                <form action="/dashboard/boxes/update-codename" method="post">
+                    <div class="container">
+                      <input class="input" type="hidden" name="ip" value="{{ .IP }}">
+                      <label class="label">Codename</label>
+                      <div class="field has-addons">
+                        <div class="control">
+                          <input class="input" type="text" placeholder="Enter Codename" name="codename" value="{{ .Codename }}">
+                        </div>
+                        <div class="control">
+                          <button name="codename-submit" class="button is-link">Apply</button>
+                        </div>
+                      </div>
+                    </div>
+                </form>
+                <form>
+                    <div class="container">
+                      <label class="label">User Shells</label>
+                      <input class="input" type="hidden" name="ip" value="{{ .IP }}">
+                      <input class="input" type="hidden" name="type" value="user">
+                      <div class="field has-addons">
+                        <div class="control">
+                          <input class="input" type="number" min="0" max="99" size="2" name="shells" value="{{.UserShells}}">
+                        </div>
+                        <div class="control">
+                          <button name="shell-submit" class="button is-link">Apply</button>
+                        </div>
+                      </div>
+                    </div>
+                </form>
+                <form action="/dashboard/boxes/update-shells" method="post">
+                    <input class="input" type="hidden" name="ip" value="{{ .IP }}">
+                    <label class="label">Root Shells</label>
+                    <div class="container">
+                      <div class="field has-addons">
+                        <input class="input" type="hidden" name="type" value="root">
+                        <div class="control">
+                          <input class="input" type="number" min="0" max="99" size="2" name="shells" value="{{.RootShells}}">
+                        </div>
+                        <div class="control">
+                          <button name="shell-submit" class="button is-link">Apply</button>
+                        </div>
+                      </div>
+                    </div>
+                </form>
+              </div>
+            {{ if not .Ports }}
+            <p>No ports in database.</p>
+            {{ end }}
+            {{ range .Ports }}
+            <div class="port">
+              <div>
+                <span>{{ .Title }} <a name="service-details" class="icon"><i class="fas fa-list"></i></a></span>
+              </div>
+              <div class="modal">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                  <header class="modal-card-head">
+                    <p class="modal-card-title" style="margin-bottom:0px;">{{ .Title }}</p>
+                    <button class="delete" aria-label="close"></button>
+                  </header>
+                  <section class="modal-card-body">
+		    <p name="id" hidden>{{ .ID }}</p>
+                    <span name="service-details">
+                      {{ .Details }}
+                    </span>
+                    <span class="edit-button">
+                      <a name="edit-service-details" class="icon"><i class="fas fa-pen-to-square"></i></a>
+                    </span>
+                  </section>
+                </div>
+              </div>
+            </div>
+            {{ end }}
+            <div>
+              <form action="/dashboard/boxes/delete" method="post">
+                    <input class="input" type="hidden" name="ip" value="{{ .IP }}">
+                    <div class="field">
+                        <button class="button is-danger">Delete Box</button>
+                    </div>
+              </form>
+	    </div>
+          </div>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+    $(document).ready(function () {
+      $("select").on("change", function (event) {
+        var $form = $(this).closest('form');
+        var formData = {
+          ip: $form.find('input[name="ip"]').val(),
+          assignee: $form.find('select').val(),
+        };
+
+        $.ajax({
+          type: "POST",
+          url: "/dashboard/boxes/update-assignee",
+          data: formData,
+          dataType: "json",
+          encode: true,
+        }).done(function (data) {
+          console.log(data);
+        });
+        event.preventDefault();
+      });
+      $("button[name='shell-submit']").on("click", function (event) {
+        var $form = $(this).closest('form');
+        var formData = {
+          ip: $form.find('[name="ip"]').val(),
+          type: $form.find('[name="type"]').val(),
+          shells: $form.find('[name="shells"]').val(),
+        };
+
+        $.ajax({
+          type: "POST",
+          url: "/dashboard/boxes/update-shells",
+          data: formData,
+          dataType: "json",
+          encode: true,
+        }).done(function (data) {
+          console.log(data);
+        });
+        event.preventDefault();
+      });
+      function openModal($element) {
+        $element.addClass('is-active');
+      }
+      function closeModal($element) {
+        var $body = $element.find('.modal-card').find('.modal-card-body');
+        $body.find('.edit-button').removeAttr('hidden');
+        $body.find('form').remove();
+        $element.removeClass('is-active');
+      }
+      $("a[name='service-details']").on("click", function (event) {
+          var $modal = $(this).closest('.port').find('.modal');
+          openModal($modal);
+      });
+      $(".modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot").on("click", function (event) {
+          var $modal = $(this).closest('.port').find('.modal');
+          closeModal($modal);
+      });
+      $("a[name='edit-service-details']").on("click", function (event) {
+          var $content = $(this).closest('.modal-card-body');
+          $content.children('.edit-button').attr('hidden', true);
+          var form = document.createElement('form');
+          form.setAttribute('action', '/api/update/service-details');
+	  form.setAttribute('method', 'POST');
+          var input = document.createElement('textarea');
+          input.setAttribute('type', 'textarea');
+          input.setAttribute('placeholder', 'Service details...');
+          input.setAttribute('name', 'content');
+          input.setAttribute('class', 'textarea');
+          input.value = $content.find('[name="service-details"]').text();
+          var id = document.createElement('input');
+          id.setAttribute('type', 'hidden');
+          id.setAttribute('name', 'id');
+          id.setAttribute('value', $content.find('[name="id"]').text());
+          var submit = document.createElement('input');
+          submit.setAttribute('type', 'submit');
+          submit.setAttribute('class', 'button is-link');
+          submit.setAttribute('value', 'Save');
+          form.appendChild(input);
+          form.appendChild(id);
+          form.appendChild(submit);
+          $content.append(form);
+      });
+    });
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+      coll[i].addEventListener("click", function() {
+          this.classList.toggle("active");
+          var content = this.nextElementSibling;
+          if (content.style.maxHeight){
+                content.style.maxHeight = null;
+          } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+          } 
+        });
+    }
+</script>
+
+{{template "footer.html"}}

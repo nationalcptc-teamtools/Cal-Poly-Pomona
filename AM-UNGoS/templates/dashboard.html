@@ -1,0 +1,55 @@
+{{template "header.html" .}}
+<section class="section">
+  <div class="container">
+    <h1 class="title">
+      Dashboard
+    </h1>
+
+    <div class="columns">
+      <div class="column is-one-fifth">{{template "menu.html" .}}</div>
+      <div class="column is-four-fifths">
+          <div style="background-color: whitesmoke; padding: 10px;">
+          {{if .error}}
+          <div class="notification is-danger is-light">
+            {{.error}}
+          </div>
+
+          {{end}}
+            <div class="box">
+              <div>
+                <h1 class="title">Network PWNge</h1>
+		<progress name="main-progress" class="progress is-success is-large" value="{{.content.PwnedBoxes}}" max="{{.content.TotalBoxes}}"></progress>
+		<p class="subtitle is-5">{{.content.PwnedBoxes}}/{{.content.TotalBoxes}} boxes have at least 1 shell open</p>
+              </div>
+            </div>
+            <div class="columns">
+              <div class="column is-half">
+		      <div class="box">
+			<h1 class="title">User Shells</h1>
+			<h1 class="title is-1">{{.content.UserShells}}</h1>
+		      </div>
+              </div>
+              <div class="column is-half">
+		      <div class="box">
+			<h1 class="title">Root Shells</h1>
+			<h1 class="title is-1">{{.content.RootShells}}</h1>
+		      </div>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+	$(document).ready(function () {
+		$progress = $("[name='main-progress']");
+		if ($progress.attr("value") == $progress.attr("max") && $progress.attr("max") != 0) {
+			confetti({
+					spread: 180
+				});
+		}
+	});
+</script>
+{{template "footer.html"}}

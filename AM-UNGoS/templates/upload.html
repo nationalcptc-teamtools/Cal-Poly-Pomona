@@ -1,0 +1,37 @@
+{{template "header.html" .}}
+<section class="section">
+  <div class="container">
+    <h1 class="title">
+      Upload
+    </h1>
+
+    <div class="columns">
+      <div class="column is-one-fifth">{{template "menu.html" .}}</div>
+      <div class="column is-four-fifths">
+        <div style="background-color: whitesmoke; padding: 10px;">
+          {{if .content}}
+            <div class="notification is-danger is-light">
+              {{.content}}
+            </div>
+          {{end}}
+          <form class="box" action="/api/upload" enctype="multipart/form-data" method="post">
+
+            <div class="container">
+              <div class="field">
+                <label class="label">Upload NMAP Output</label>
+                <div class="control">
+                        <input class="input" type="file" name="file" required>
+                </div>
+              </div>
+              <div class="field">
+                <button class="button is-link">Submit</button>
+              </div>
+
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{{template "footer.html"}}

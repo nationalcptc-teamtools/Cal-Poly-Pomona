@@ -1,0 +1,20 @@
+{{template "header.html" .}}
+<section class="section">
+  <div class="container">
+    <h1 class="title">
+      Dashboard
+    </h1>
+
+    <div class="columns">
+      <div class="column is-one-fifth">{{template "menu.html" .}}</div>
+      <div class="column is-four-fifths">
+	      <div style="background-color: whitesmoke; padding: 10px;">
+		<div class="box">
+		{{.content}}
+		</div>
+	      </div>
+      </div>
+    </div>
+  </div>
+</section>
+{{template "footer.html"}}
