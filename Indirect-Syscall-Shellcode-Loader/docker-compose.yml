@@ -7,3 +7,11 @@ services:
     volumes:
       - "./Jit Tripping/:/opt/Jit Tripping/"
     command: bash -c "msbuild Compile.proj"
+  service_compiler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - "./Service/:/opt/Jit Tripping/"
+    command: bash -c "msbuild Compile.proj"
+
