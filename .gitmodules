@@ -1,0 +1,3 @@
+[submodule "SUGMANATS"]
+	path = SUGMANATS
+	url = https://github.com/dbaseqp/SUGMANATS
