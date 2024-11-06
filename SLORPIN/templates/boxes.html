@@ -1,0 +1,639 @@
+{{ template "header.html" . }}
+
+{{ $ports := .ports }}
+{{ $boxes := .boxes }}
+{{ $users := .users }}
+{{ $config := .config }}
+
+<button style="z-index:0;top:3rem;" class="float-start sticky-top btn btn-lg btn-outline-primary mt-4" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBoxList" aria-controls="offcanvasBoxList" title="Open menu"><i class="fa-solid fa-square-poll-horizontal"></i></button>
+
+<div class="mt-4 container">
+    <div class="row">
+        <ul class="nav nav-tabs mb-4" role="tablist" id="tab-list">
+
+        </ul>
+    </div>
+    <div class="row">
+        <div class="tab-content" id="v-pills-tabContent">
+            <div class="tab-pane fade show active" id="v-pills-default" role="tabpanel" aria-labelledby="v-pills-default-tab" tabindex="0">
+                No box selected.
+            </div>
+            {{ range $box := $boxes }}
+            {{ $claimUser := index $users $box.ClaimerID }}
+            <div class="tab-pane fade" id="v-pills-{{ $box.IP }}" role="tabpanel" aria-labelledby="v-pills-{{ $box.IP }}-tab" tabindex="0">
+                <div class="bg-light-subtle border border-light-subtle rounded-2 p-4 h-100">
+                    <h1>{{ $box.IP }}{{ if $box.Hostname }} <hr class="vr mx-2 my-0"> {{ $box.Hostname}}{{ end }}</h1>
+                    <div class="row">
+                        <div class="col col-lg-8">
+                            <table class="table border border-light-subtle">
+                                <tr>
+                                    <th>IP</th>
+                                    <td>{{ $box.IP }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Hostname</th>
+                                    <td>{{ $box.Hostname }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Ports</th>
+                                    <td>
+                                        <table class="table table-striped table-hover">
+                                            <tr>
+                                                <th>Port</th>
+                                                <th>Service</th>
+                                                <th>Version</th>
+                                                <th>Tunnel</th>
+                                            </tr>
+                                            {{ $boxPorts := index $ports $box.ID }}
+                                            {{ range $port := $boxPorts }}
+                                            <tr>
+                                                <td>
+                                                    {{ $port.Port }}/{{ $port.Protocol }}
+                                                </td>
+                                                <td>
+                                                    {{ $port.Service }}
+                                                </td>
+                                                <td>
+                                                    {{ $port.Version}}
+                                                </td>
+                                                <td>
+                                                    {{ $port.Tunnel }}
+                                                </td>
+                                            </tr>
+                                            {{ end }}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="w-100 m-0 d-lg-none d-block"></div>
+                        <div class="col">
+                            <div class="d-flex flex-column gap-4">
+                                <div class="row gx-0">
+                                    <ul id="box-details-{{ $box.IP }}" class="list-group list-group-flush border">
+                                        <li class="list-group-item fs-2 d-flex flex-row align-items-center">
+                                            <i class="fa-fw fa-regular fa-user"></i>
+                                            <div class="ms-4">
+                                                <div class="fs-6">User Shells</div>
+                                                <div id="box-details-usershells-{{ $box.IP }}" data-ajax="usershells" data-boxId="{{ $box.IP }}">{{ $box.Usershells }}</div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-2 d-flex flex-row align-items-center">
+                                            <i class="fa-fw fa-solid fa-skull-crossbones"></i>
+                                            <div class="ms-4">
+                                                <div class="fs-6">Root Shells</div>
+                                                <div id="box-details-rootshells-{{ $box.IP }}" data-ajax="rootshells" data-boxId="{{ $box.ID }}">{{ $box.Rootshells }}</div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-2 d-flex flex-row align-items-center">
+                                            <i class="fa-fw fa-solid fa-street-view"></i>
+                                            <div class="ms-4">
+                                                <div class="fs-6">Claim</div>
+                                                <div id="box-details-claim-{{ $box.IP }}" data-ajax="claim" data-boxId="{{ $box.ID }}">{{ if ne $box.ClaimerID 0 }}{{ $claimUser.Name }}{{ else }}Unclaimed{{ end }}</div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                    <a type="button" class="btn btn-link w-auto link-underline link-underline-opacity-0 link-underline-opacity-100-hover" data-bs-toggle="modal" data-bs-target="#box-details-edit-{{ $box.IP }}">
+                                        Edit...
+                                    </a>
+                                </div>
+
+                                <div class="modal fade" id="box-details-edit-{{ $box.IP }}" tabindex="-1" aria-labelledby="box-details-edit-{{ $box.IP }}Label" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h1 class="modal-title fs-5" id="box-details-edit-{{ $box.IP }}Label">Edit Box Details</h1>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form onsubmit="return editBoxDetails(event, '{{ $box.ID }}', '{{ $box.IP }}')" id="box-details-edit-form-{{ $box.IP }}">
+                                                    <div class="row">
+                                                        <div class="col input-group mb-3">
+                                                            <span class="input-group-text" id="usershell-addon-{{ $box.IP }}">User Shells</span>
+                                                            <input value="{{ $box.Usershells }}" name="usershells" type="numeric" class="form-control" placeholder="0" aria-label="User shells" aria-describedby="usershell-addon-{{ $box.IP }}">
+                                                        </div>
+                                                        <div class="col input-group mb-3">
+                                                            <span class="input-group-text" id="rootshell-addon-{{ $box.IP }}">Root Shells</span>
+                                                            <input value="{{ $box.Rootshells }}" name="rootshells" type="numeric" class="form-control" placeholder="0" aria-label="Root shells" aria-describedby="rootshell-addon-{{ $box.IP }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <div class="col input-group mb-3">
+                                                                <span class="input-group-text" id="claim-addon-{{ $box.IP }}">Claim</span>
+                                                                <select name="claim" class="form-select" aria-label="Assign a claim">
+                                                                    <option value="0" {{ if eq $box.ClaimerID 0}}selected{{ end }}>Unclaimed</option>
+                                                                    {{ range $user := $users }}
+                                                                    <option value="{{ $user.ID }}" {{ if and (ne $box.ClaimerID 0) (eq $user.ID $box.ClaimerID) }}selected{{ end }}>{{ $user.Name}}</option>
+                                                                    {{ end }}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary" form="box-details-edit-form-{{ $box.IP }}">Save changes</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="accordion" id="accordionNote-{{ $box.IP }}">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNote-{{ $box.IP }}" aria-expanded="true" aria-controls="collapseNote-{{ $box.IP }}" style="border-bottom: 5px solid #343A40;">
+                                        <strong>Notes</strong>
+                                        </button>
+                                    </h2>
+                                    <div id="collapseNote-{{ $box.IP }}" class="accordion-collapse collapse show" data-bs-parent="#accordionNote-{{ $box.IP }}">
+                                        <div id="box-note-rendered-{{ $box.IP }}" class="accordion-body">
+                                            <div>
+                                                {{ if gt (len $box.Note) 0 }}{{ $box.Note | markdown }}{{ else }}No notes yet.{{ end }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a type="button" class="btn btn-link w-auto link-underline link-underline-opacity-0 link-underline-opacity-100-hover notes-button" data-id="{{ $box.ID }}" data-ip="{{ $box.IP }}">
+                                Edit...
+                            </a>
+                        </div>
+                        <div class="modal fade" id="box-note-edit-{{ $box.IP }}" tabindex="-1" aria-labelledby="box-note-edit-{{ $box.IP }}Label" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="box-note-edit-{{ $box.IP }}Label">Edit Box Notes</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="box-note-edit-form-{{ $box.IP }}">
+                                            <textarea id="note-{{ $box.IP }}" rows="20" name="note" class="form-control" placeholder="Write box notes here (supports markdown)"></textarea>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary" form="box-note-edit-form-{{ $box.IP }}" onclick="editBoxNote(event, '{{ $box.ID }}', '{{ $box.IP }}')">Save changes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</div>
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasBoxList" aria-labelledby="offcanvasBoxListLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasBoxListLabel">Actions</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="hstack gap-2 w-auto mb-4">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadNmapModal">
+            Upload NMAP XML
+        </button>
+        <div class="vr"></div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+            Advanced Filter Boxes
+        </button>
+    </div>
+    <h5 class="mb-4">Filters</h5>
+    <div class="hstack gap-2 w-auto mb-4" id="filter-radios">
+        <input type="radio" class="btn-check" name="all-filter" id="all-boxes" value="all" autocomplete="off" checked>
+        <label class="btn btn-primary rounded-pill" for="all-boxes">All Boxes</label>
+        <div class="vr"></div>
+
+        <input type="radio" class="btn-check" name="claim-filter" id="claimed" value="claimed" autocomplete="off">
+        <label class="btn btn-primary rounded-pill" for="claimed">All Claimed Boxes</label>
+
+        <input type="radio" class="btn-check" name="claim-filter" id="yours" value="yours" autocomplete="off">
+        <label class="btn btn-primary rounded-pill" for="yours">My Claimed Boxes</label>
+
+        <input type="radio" class="btn-check" name="claim-filter" id="unclaimed" value="unclaimed" autocomplete="off">
+        <label class="btn btn-primary rounded-pill" for="unclaimed">Unclaimed Boxes</label>
+        <div class="vr"></div>
+
+
+        <input type="radio" class="btn-check" name="pwn-filter" id="unpwned" value="unpwned" autocomplete="off">
+        <label class="btn btn-primary rounded-pill" for="unpwned">Unpwned Boxes</label>
+
+        <input type="radio" class="btn-check" name="pwn-filter" id="pwned" value="pwned" autocomplete="off">
+        <label class="btn btn-primary rounded-pill" for="pwned">Pwned Boxes</label>
+    </div>
+    {{ if ne (len $boxes) 0 }}
+    <h5 class="mb-4">Boxes</h5>
+    <div class="list-group list-group-flush" id="box-bar">
+        {{ range $box := $boxes }}
+        <button class="list-group-item list-group-item-action"
+                id="v-pills-{{ $box.IP }}-tab"
+                data-claim="{{ if ne $box.ClaimerID 0}}{{ $claimer := index $users $box.ClaimerID }}{{ $claimer.Name }}{{ else }}unclaimed{{ end }}"
+                data-pwned="{{ or (gt $box.Usershells 0) (gt $box.Rootshells 0) }}"
+                data-bs-toggle="pill"
+                data-bs-target="#v-pills-{{ $box.IP }}"
+                data-box-tab="box-tab-{{ $box.IP }}"
+                type="button"
+                role="tab"
+                aria-controls="v-pills-{{ $box.IP }}"
+                aria-selected="true"
+                data-ports="{{ $boxPorts := index $ports $box.ID }}{{ range $index, $port := $boxPorts }}{{if $index}},{{end}}{{ $port.Port }}{{ end }}">
+
+                {{ $box.IP }}
+                {{ if $box.Hostname }} ({{ $box.Hostname }}) {{ end }}
+                {{ if ne $box.ClaimerID 0 }}{{ $claimer := index $users $box.ClaimerID }}<hr class="vr mx-2 my-0">{{ $claimer.Name }}{{ end }}
+        </button>
+        {{ end }}
+    </div>
+    {{ else }}
+    <p>Nothing to show right now. Upload NMAP results to view.</p>
+    {{ end }}
+  </div>
+</div>
+
+<div class="modal fade" id="uploadNmapModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadNmapModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadNmapModalLabel">Upload NMAP XML</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="box-upload-form" method="POST" enctype="multipart/form-data" onsubmit="uploadNmap(event)">
+                <div class="mb-3">
+                    <label for="formFileMultiple" class="form-label">NMAP XML File</label>
+                    <input type="file" class="form-control" name="files" id="formFileMultiple" multiple required aria-required="true">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" form="box-upload-form">Upload</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="modal fade" id="filterModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="filterModalLabel">Advanced Filter Boxes</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form id="box-filter-form" onsubmit="filterBoxes(event)">
+                <div class="mb-3">
+                    <label for="portFilter" class="form-label">Find Boxes by Port</label>
+                    <p class="form-text">Use a comma separated list of ports (will use OR matching)</p>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1">Open</span>
+                        <input name="filter-ports" type="text" class="form-control" placeholder="Find with open port" aria-describedby="basic-addon1">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" form="box-filter-form">Apply Filter</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<script>
+    const allRadio      = document.getElementById('all-boxes');
+    const claimRadio    = document.querySelectorAll('input[name="claim-filter"]');
+    const pwnRadio      = document.querySelectorAll('input[name="pwn-filter"]');
+
+    claimRadio.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) {
+                allRadio.checked = false;
+            }
+        })
+    });
+
+    pwnRadio.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) {
+                allRadio.checked = false;
+            }
+        })
+    });
+
+    allRadio.addEventListener('click', () => {
+        claimRadio.forEach(radio => {
+            radio.checked = false;
+        });
+        pwnRadio.forEach(radio => {
+            radio.checked = false;
+        });
+    });
+
+    const allClaimedRadio = document.getElementById('claimed');
+    const yourClaimedRadio = document.getElementById('yours');
+    const unClaimedRadio = document.getElementById('unclaimed');
+    const pwnedRadio = document.getElementById('pwned');
+    const unpwnedRadio = document.getElementById('unpwned');
+
+    const radioBar  = document.getElementById('filter-radios');
+    const boxes     = document.querySelectorAll('#box-bar .list-group-item-action');
+
+    radioBar.addEventListener('click', (event) => {
+        if(event.target && event.target.matches("input[type='radio']")) {
+            let boxcount = 0;
+
+            boxes.forEach((box) => {
+
+                let claimBool = false;
+                let pwnBool = false;
+
+                if ((allClaimedRadio.checked && box.getAttribute('data-claim') != "unclaimed") ||
+                    (yourClaimedRadio.checked && box.getAttribute('data-claim') == '{{ .user.Name }}') ||
+                    (unClaimedRadio.checked && box.getAttribute('data-claim') == "unclaimed") ||
+                    (!allClaimedRadio.checked && !yourClaimedRadio.checked && !unClaimedRadio.checked)) {
+                    claimBool = true;
+                }
+                if ((pwnedRadio.checked && box.getAttribute('data-pwned') == "true") ||
+                    (unpwnedRadio.checked && box.getAttribute('data-pwned') == "false") ||
+                    (!pwnedRadio.checked && !unpwnedRadio.checked)) {
+                    pwnBool = true;
+                }
+                if((claimBool && pwnBool) || event.target.matches('#all-boxes')) {
+                    box.style.display = "block";
+                    boxcount++;
+                } else {
+                    box.style.display = "none";
+                }
+            })
+            // document.getElementById('result-header').textContent = 'Showing ' + boxcount + '/{{ len .boxes }} boxes'
+        }
+    })
+
+    const boxBar  = document.getElementById('box-bar');
+    const tabList  = document.getElementById('tab-list');
+    const defaultPane  = document.getElementById('v-pills-default');
+    // get rid of "no box selected pane"
+
+    boxBar.addEventListener('click', (event) => {
+        if(event.target && event.target.matches(".list-group-item-action")) {
+            defaultPane.classList.remove("active");
+        }
+    })
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        function renderBoxNote(e, id, ip) {
+            e.preventDefault();
+
+            const url = "/boxes/note/" + id;
+            const textarea = document.getElementById('note-' + ip);
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Server response:', data);
+                    if (data.status) {
+                        textarea.value = data.note;
+                        const modal = new bootstrap.Modal(document.getElementById('box-note-edit-' + ip));
+                        modal.show();
+                    } else {
+                        createToast("Failed to load the note", "bg-danger");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    createToast("An error occurred while loading the note", "bg-danger");
+                });
+        }
+
+        document.querySelectorAll('.notes-button').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const id = button.getAttribute('data-id');
+                const ip = button.getAttribute('data-ip');
+                renderBoxNote(event, id, ip);
+            });
+        });
+    });
+
+    function createBoxTab(ip) {
+        box = document.querySelector(`[data-box-tab="${ip}"]`)
+        li = document.createElement("li")
+        li.classList.add("nav-item")
+        li.id = ip+"-parent"
+
+        closeButton = document.createElement("button")
+        closeButton.type = "button"
+        closeButton.classList.add("btn-close")
+        closeButton.setAttribute("aria-label", "Close")
+        closeButton.setAttribute("data-close", li.id)
+        closeButton.addEventListener('click', (event) => {
+            document.getElementById(event.target.getAttribute("data-close")).remove()
+            document.getElementById(box.getAttribute("data-bs-target").replace("#","")).classList.remove("active")
+            if (window.location.hash.includes(","))
+            {
+                boxList = window.location.hash.split(",").filter(element => element != event.target.getAttribute("data-close").replace("-parent",""))
+                window.location.hash = boxList.join(",")
+            } else {
+                window.location.hash = ""
+            }
+            if (!hash) {
+                defaultPane.classList.add("active")
+            }
+        })
+
+        newTab = document.createElement("button")
+        newTab.id = ip
+        newTab.classList.add("nav-link")
+        newTab.setAttribute("data-bs-target", box.getAttribute("data-bs-target"))
+        newTab.setAttribute("data-bs-toggle", "pill")
+        newTab.type = "button"
+        newTab.role = "tab"
+        newTab.setAttribute("aria-controls", box.getAttribute("aria-controls"))
+        newTab.textContent = box.textContent
+
+        newTab.appendChild(closeButton)
+        li.appendChild(newTab)
+        tabList.appendChild(li)
+        return new bootstrap.Tab(newTab)
+    }
+
+    // probably need to clean this up
+    boxes.forEach((box) => {
+        box.addEventListener('click', (event) => {
+            id = box.getAttribute("data-box-tab")
+            if (document.getElementById(id) != null) {
+                return
+            }
+            var hash = location.hash.replace(/^#/, '');
+            if (hash) {
+                if (!hash.split(",").includes(id)) {
+                    window.location.hash += ","+id;
+                }
+            } else {
+                window.location.hash += id;
+            }
+
+            createBoxTab(id)
+        })
+    })
+
+    // Javascript to enable link to tab (save state)
+    var hash = location.hash.replace(/^#/, '');
+    if (hash) {
+        defaultPane.classList.remove("active");
+        for (const ip of hash.split(",")) {
+            tab = createBoxTab(ip)
+            tab.show()
+        }
+    }
+
+    // sse and ajax
+
+    const evtSource = new EventSource("/sse");
+    evtSource.onmessage = (event) => {
+        data = JSON.parse(event.data)
+        if (data.includes("dirty")) {
+            createToast("Refresh the window for newer data", "bg-primary")
+        }
+        if (data.includes("boxes")) {
+            fetch("/api/boxes")
+            .then(response => response.json())
+            .then(response => {
+                if (response.status == false) {
+                    createToast(response.message, "bg-danger")
+                } else {
+                    for (const id of response.boxIds) {
+                        document.querySelectorAll('[data-ajax="usershells"]').forEach((element) => {
+                            if (element.getAttribute("data-boxId") == id) {
+                                element.textContent = response.boxes[id].Usershells
+                            }
+                        })
+                        document.querySelectorAll('[data-ajax="rootshells"]').forEach((element) => {
+                            if (element.getAttribute("data-boxId") == id) {
+                                element.textContent = response.boxes[id].Rootshells
+                            }
+                        })
+                        document.querySelectorAll('[data-ajax="claim"]').forEach((element) => {
+                            if (element.getAttribute("data-boxId") == id) {
+                                if (response.boxes[id].ClaimerID == 0) {
+                                    element.textContent = "Unclaimed"
+                                } else {
+                                    element.textContent = response.users[response.boxes[id].ClaimerID].Name
+                                }
+                            }
+                        })
+                        document.querySelectorAll('[data-ajax="note"]').forEach((element) => {
+                            if (element.getAttribute("data-boxId") == id) {
+                                element.textContent = response.boxes[id].Note
+                            }
+                        })
+                    }
+                }
+            })
+            .catch(error => {
+                createToast(error, "bg-danger")
+            })
+        }
+        if (data.includes("ports")){
+            console.log("ports")
+        }
+    };
+
+    function editBoxNote(e, id, ip) {
+        formid = "box-note-edit-form-"+ip;
+        url = "/boxes/edit/note/"+id;
+
+        const form = document.forms[formid]
+        data = {
+            note: form.note.value,
+        }
+
+        success_function = function (response){
+            const modal = bootstrap.Modal.getInstance(document.getElementById('box-note-edit-'+ip))
+
+            createToast(response.message, "bg-success")
+            modal.hide()
+        }
+
+        postAjax(e, formid, data, url, success_function)
+    }
+
+    function editBoxDetails(e, id, ip) {
+        formid = "box-details-edit-form-"+ip;
+        url = "/boxes/edit/details/"+id;
+
+        const form = document.forms[formid]
+        data = {
+            usershells: form.usershells.value,
+            rootshells: form.rootshells.value,
+            claim: form.claim.value,
+        }
+
+        success_function = function (response){
+            const modal = bootstrap.Modal.getInstance(document.getElementById('box-details-edit-'+ip))
+
+            createToast(response.message, "bg-success")
+            modal.hide()
+        }
+
+        postAjax(e, formid, data, url, success_function)
+    }
+
+    function uploadNmap(e) {
+        formid = "box-upload-form";
+        url = "/boxes/upload";
+
+        const form = document.forms[formid]
+
+        data = new FormData()
+        for (const file of form.files.files) {
+            data.append("files", file)
+        }
+
+        success_function = function (response){
+            const modal = bootstrap.Modal.getInstance(document.getElementById('uploadNmapModal'))
+
+            createToast(response.message, "bg-success")
+            modal.hide()
+        }
+
+        postAjax(e, formid, data, url, success_function)
+    }
+
+
+    function filterBoxes(e) {
+        e.preventDefault();
+        formid = "box-filter-form"
+        const form = document.forms[formid]
+
+        if (form["filter-ports"] != undefined || form["filter-ports"] != "") {
+            let ports = form["filter-ports"].value.split(",")
+            boxes.forEach((box) => {
+                let boxports = box.getAttribute("data-ports").split(",")
+                ports.forEach((port) => {
+                    if (boxports.includes(port)) {
+                        box.style.display = "block"
+                    } else {
+                        box.style.display = "none"
+                    }
+                })
+            })
+        }
+    }
+</script>
+
+{{ template "error.html" .error }}
+
+{{ template "footer.html" }}
