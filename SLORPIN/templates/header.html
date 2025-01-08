@@ -19,21 +19,19 @@
   {{ if .user.IsValid }}
     <nav class="navbar navbar-expand-sm bg-body-tertiary">
         <div class="container-fluid">
-          <a class="navbar-brand">SLORPIN</a>
+          <a class="navbar-brand" style="letter-spacing: 5px" href="/dashboard">SLORPIN</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link {{if eq .title "Dashboard"}}active{{end}}" aria-current="page" href="/dashboard"><i class="fa-fw fa-solid fa-weight-scale"></i>Dashboard</a>
-              </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle {{if or (eq .title "Boxes") (eq .title "Credentials") (eq .title "Export Boxes")}}active{{end}}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="fa-fw fa-solid fa-warehouse"></i> Inventory
+                  <i class="fa-fw fa-solid fa-folder mx-1"></i> Inventory
                 </a>
                 <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="/boxes"><i class="fa-fw fa-solid fa-boxes-stacked"></i> Boxes</a></li>
+                  <li><a class="dropdown-item" href="/boxes"><i class="fa-fw fa-solid fa-cube"></i> Boxes</a></li>
+                  <li><a class="dropdown-item" href="/web"><i class="fa-fw fa-regular fa-window-maximize"></i> Websites</a></li>
                   <li><a class="dropdown-item" href="/credentials"><i class="fa-fw fa-regular fa-id-card"></i> Credentials</a></li>
                   <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item" href="/boxes/export"> Export Boxes</a></li>
@@ -42,7 +40,7 @@
               <li class="nav-item">
                 <a class="nav-link {{if eq .title "Tasks"}}active{{end}}" aria-current="page" href="/tasks"><i class="fa-fw fa-solid fa-clipboard-list"></i> Tasks</a>
               </li>
-            </ul> 
+            </ul>
             <ul class="navbar-nav ml-auto mb-lg-0">
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle {{if or (eq .title "Settings") (eq .title "About")}}active{{end}}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

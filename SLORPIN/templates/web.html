@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+
+{{ template "header.html" . }}
+
+{{ $webs := .webs }}
+{{ $directories := .directories }}
+{{ $users := .users }}
+
+<style>
+    .sidebar {
+        margin-top: 56px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 4.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 1rem;
+        z-index: 1000;
+    }
+
+    .sidebar button {
+        margin-bottom: 1rem;
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+    }
+
+    .sidebar button i {
+        pointer-events: none;
+    }
+
+    .tab-pane {
+        display: none;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    .edit-hover:hover {
+        background-color: dodgerblue;
+    }
+
+</style>
+
+<div class="sidebar">
+    <button
+            aria-controls="uploadGobusterModal"
+            class="btn btn-lg btn-outline-primary"
+            data-bs-target="#uploadGobusterModal"
+            data-bs-toggle="modal"
+            title="Upload"
+            type="button">
+        <i class="fa-solid fa-file-upload"></i>
+    </button>
+
+    <button
+            aria-controls="offcanvaswebList"
+            class="btn btn-lg btn-outline-primary"
+            data-bs-target="#offcanvaswebList"
+            data-bs-toggle="offcanvas"
+            title="Filter"
+            type="button">
+        <i class="fa-solid fa-filter"></i>
+    </button>
+</div>
+
+<!-- SIDE BUTTONS -->
+<div aria-hidden="true" aria-labelledby="uploadGobusterModalLabel" class="modal fade" data-bs-backdrop="static"
+     data-bs-keyboard="false"
+     id="uploadGobusterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="uploadGobusterModalLabel">Upload Gobuster Scan</h1>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <div class="modal-body">
+                <form enctype="multipart/form-data" id="web-upload-form" method="POST" onsubmit="uploadGobuster(event)">
+                    <div class="mb-3">
+                        <input aria-required="true" class="form-control" id="formFileMultiple" multiple name="files"
+                               required
+                               type="file">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" form="web-upload-form" type="submit">Upload</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div aria-labelledby="offcanvaswebListLabel" class="offcanvas offcanvas-start" id="offcanvaswebList"
+     style="width: 325px" tabindex="-1">
+    <div class="offcanvas-header" style="margin-bottom: 0; padding-bottom: 0">
+        <h3 class="offcanvas-title" id="offcanvaswebListLabel"><i class="fa-solid fa-filter"
+                                                                  style="margin-right: 15px"></i>Filter
+        </h3>
+        <button aria-label="Close" class="btn-close" data-bs-dismiss="offcanvas" type="button"></button>
+    </div>
+    <div class="offcanvas-body">
+        <h5 class="mt-5 mb-2" style="color: dodgerblue">Websites</h5>
+        {{ if ne (len $webs) 0 }}
+        <div class="list-group list-group-flush" id="web-bar">
+            {{ range $web := $webs }}
+            <button aria-controls="v-pills-{{ $web.ID }}"
+                    aria-selected="true"
+                    class="list-group-item list-group-item-action"
+                    data-bs-target="#v-pills-{{ $web.ID }}"
+                    data-bs-toggle="pill"
+                    data-web-tab="web-tab-{{ $web.ID }}"
+                    db-id="{{ $web.ID }}"
+                    display-name="{{ $web.URL }}"
+                    id="v-pills-{{ $web.ID }}-tab"
+                    role="tab"
+                    style="border-bottom: 0"
+                    type="button">
+                {{ $web.URL }}
+            </button>
+            {{ end }}
+        </div>
+        {{ else }}
+        <p>Nothing to show right now. Upload Gobuster results to view.</p>
+        {{ end }}
+    </div>
+</div>
+
+<div class="mt-4 container">
+    <div class="row">
+        <ul class="nav nav-tabs mb-4" id="tab-list" role="tablist"></ul>
+    </div>
+    <div class="row">
+        <div class="tab-content" id="v-pills-tabContent">
+            <div aria-labelledby="v-pills-default-tab" class="tab-pane fade" id="v-pills-default" role="tabpanel"
+                 tabindex="0">
+                No box selected.
+            </div>
+            <div class="row">
+                {{ range $web := $webs }}
+                <div aria-labelledby="web-tab-{{ $web.ID }}-tab" class="tab-pane fade" id="web-tab-{{ $web.ID }}"
+                     role="tabpanel" tabindex="0">
+                    <div class="bg-light-subtle border border-light-subtle rounded-2 p-4 h-100">
+                        <div class="row">
+                            <div class="col-12 col-xl-3">
+                                <h1 style="margin-left: 3px">{{ $web.IP }}</h1>
+                                <div class="row gx-0 my-4">
+                                    <ul class="list-group list-group-flush border" id="web-details-{{ $web.IP }}"
+                                        style="border-radius: 15px">
+                                        <li class="list-group-item fs-4 d-flex flex-row align-items-center">
+                                            <i class="fa-fw fa-solid fa-share-nodes"></i>
+                                            <div class="ms-4">
+                                                <div class="fs-6">Port</div>
+                                                <div class="fs-5">{{ $web.Port }}</div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-4 d-flex flex-row align-items-center">
+                                            <i class="fs-5 fa-fw fa-solid fa-tag"></i>
+                                            <div class="ms-4" style="overflow-y: auto">
+                                                <div class="fs-6">Title</div>
+                                                <div class="fs-5" data-webId="{{ $web.IP }}"
+                                                     id="web-details-title-{{ $web.IP }}">
+                                                    {{ if $web.Title }}{{ $web.Title }}{{ else }}N/A{{ end }}
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-4 d-flex flex-row align-items-center">
+                                            <i class="fs-5 fa-fw fa-solid fa-gear"></i>
+                                            <div class="ms-4" style="overflow-y: auto">
+                                                <div class="fs-6">Backend</div>
+                                                <div class="fs-5" data-webId="{{ $web.ID }}"
+                                                     id="web-details-type-{{ $web.IP }}">
+                                                    {{ if $web.Backend }}{{ $web.Backend }}{{ else }}N/A{{ end }}
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="fs-5 list-group-item fs-6 d-flex flex-row justify-content-center my-0 py-1 edit-hover"
+                                            data-bs-target="#web-details-edit-{{ $web.ID }}"
+                                            data-bs-toggle="modal" type="button">
+                                            Edit
+                                        </li>
+                                    </ul>
+                                    <div aria-hidden="true" aria-labelledby="web-details-edit-{{ $web.ID }}Label"
+                                         class="modal fade"
+                                         id="web-details-edit-{{ $web.ID }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h1 class="modal-title fs-5"
+                                                        id="web-details-edit-{{ $web.ID }}Label">Edit Web Details</h1>
+                                                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                            type="button"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form id="web-details-edit-form-{{ $web.ID }}"
+                                                          onsubmit="return editWebDetails(event, '{{ $web.ID }}')">
+                                                        <div class="row-cols-1 input-group my-3">
+                                                            <span class="input-group-text"
+                                                                  id="title-addon-{{ $web.ID }}"><i
+                                                                    class="fa-fw fa-solid fa-tag mx-1"></i>Title</span>
+                                                            <input aria-describedby="title-addon-{{ $web.ID }}"
+                                                                   aria-label="Title" class="form-control" name="title"
+                                                                   type="numeric" value="{{ $web.Title }}">
+                                                        </div>
+                                                        <div class="row-cols-1 input-group my-3">
+                                                            <span class="input-group-text"
+                                                                  id="type-addon-{{ $web.ID }}"><i
+                                                                    class="fa-fw fa-solid fa-gear mx-1"></i>Backend</span>
+                                                            <input aria-describedby="type-addon-{{ $web.ID }}"
+                                                                   aria-label="Type" class="form-control" name="backend"
+                                                                   type="numeric" value="{{ $web.Backend }}">
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button class="btn btn-primary"
+                                                            form="web-details-edit-form-{{ $web.ID }}" type="submit">
+                                                        Save
+                                                        changes
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col col-sm-12 col-md-12 col-lg-12 col-xl-9">
+                                <div class="mt-0 pt">
+                                    <div class="distributed bolded">
+                                        <span class="fs-5">Endpoint</span>
+                                        <span class="fs-5">Response</span>
+                                        <span class="fs-5">Size</span>
+                                        <button class="btn btn-dark collapse-all" web-id="{{ $web.ID }}">
+                                            <i class="fa fa-solid fa-caret-up"></i>
+                                        </button>
+                                    </div>
+                                    <hr class="custom-line">
+                                    <table class="ports">
+                                        {{ $dirs := index $directories $web.ID }}
+                                        {{ range $dir := $dirs }}
+                                        <div class="accordion" id="accordionNote-{{ $dir.ID }}">
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button aria-controls="collapseNote-{{ $dir.ID }}"
+                                                            aria-expanded="false"
+                                                            class="port-button accordion-button collapsed distributed"
+                                                            data-bs-target="#collapseNote-{{ $dir.ID }}"
+                                                            data-bs-toggle="collapse"
+                                                            type="button">
+                                                        <span>{{ $dir.Path }}</span>
+                                                        <span>{{ $dir.ResponseMessage }} ({{ $dir.ResponseCode }})</span>
+                                                        <span>{{ $dir.Size }}</span>
+                                                    </button>
+                                                </h2>
+                                                <div class="accordion-collapse collapse"
+                                                     data-bs-parent="#accordionNote-{{ $dir.ID }}"
+                                                     id="collapseNote-{{ $dir.ID }}">
+                                                    <div class="accordion-body py-1"
+                                                         id="web-note-rendered-{{ $dir.ID }}"
+                                                         style="overflow-y: auto; margin-top: 8px">
+                                                        <pre>{{ $dir.Note }}</pre>
+                                                        <div class="d-flex justify-content-end">
+                                                            <a class="btn btn-link w-auto link-underline link-underline-opacity-0 link-underline-opacity-100-hover px-2"
+                                                               href="{{ $web.URL }}{{ $dir.Path }}">
+                                                                <i class="fas fa-link"></i> Open
+                                                            </a>
+                                                            <a class="btn btn-link w-auto link-underline link-underline-opacity-0 link-underline-opacity-100-hover dir-notes-button px-0"
+                                                               data-bs-target="#dir-note-edit-{{ $dir.ID }}"
+                                                               data-bs-toggle="modal"
+                                                               data-id="{{ $dir.ID }}"
+                                                               data-ip="{{ $web.IP }}"
+                                                               type="button">
+                                                                <i class="fas fa-pen"></i> Edit
+                                                            </a>
+                                                        </div>
+                                                        <div aria-hidden="true"
+                                                             aria-labelledby="dir-note-edit-{{ $dir.ID }}Label"
+                                                             class="modal fade"
+                                                             id="dir-note-edit-{{ $dir.ID }}" tabindex="-1">
+                                                            <div class="modal-dialog modal-lg">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h1 class="modal-title fs-5"
+                                                                            id="dir-note-edit-{{ $dir.ID }}Label">Edit
+                                                                            dir
+                                                                            Notes</h1>
+                                                                        <button aria-label="Close" class="btn-close"
+                                                                                data-bs-dismiss="modal"
+                                                                                type="button"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <form id="dir-note-edit-form-{{ $dir.ID }}">
+                                                                            <textarea class="form-control"
+                                                                                      id="dir-note-{{ $dir.ID }}"
+                                                                                      name="note"
+                                                                                      placeholder="Write dir notes here (supports markdown)"
+                                                                                      rows="20"></textarea>
+                                                                        </form>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button class="btn btn-primary"
+                                                                                form="dir-note-edit-form-{{ $dir.ID }}"
+                                                                                onclick="editDirNote(event, '{{ $dir.ID }}')"
+                                                                                type="submit">Save changes
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{ end }}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <h3 class="fs-5 mt-4">Notes</h3>
+                                <hr class="custom-line">
+                                <table class="table" style="margin-bottom: 0;">
+                                    <td class="py-3 px-3" style="border-radius: 5px">
+                                        {{ if gt (len $web.Note) 0 }}{{ $web.Note | markdown }}{{ else }}No notes yet.{{
+                                        end }}
+                                        <div class="d-flex justify-content-end">
+                                            <a class="btn btn-link w-auto link-underline link-underline-opacity-0 link-underline-opacity-100-hover notes-button py-0"
+                                               data-bs-target="#web-note-edit-{{ $web.ID }}"
+                                               data-bs-toggle="modal"
+                                               data-id="{{ $web.ID }}"
+                                               data-ip="{{ $web.IP }}"
+                                               style="margin-top: 0"
+                                               type="button">
+                                                <i class="fas fa-pen"></i> Edit
+                                            </a>
+                                        </div>
+                                    </td>
+                                </table>
+                                <div aria-hidden="true" aria-labelledby="web-note-edit-{{ $web.ID }}Label"
+                                     class="modal fade"
+                                     id="web-note-edit-{{ $web.ID }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h1 class="modal-title fs-5" id="web-note-edit-{{ $web.ID }}Label">Edit
+                                                    web Notes</h1>
+                                                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+                                                        type="button"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="web-note-edit-form-{{ $web.ID }}">
+                                                    <textarea class="form-control" id="web-note-{{ $web.ID }}"
+                                                              name="note"
+                                                              placeholder="Write web notes here (supports markdown)"
+                                                              rows="20"></textarea>
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-primary" form="web-note-edit-form-{{ $web.ID }}"
+                                                        onclick="editWebNote(event, '{{ $web.ID }}', '{{ $web.IP }}', '{{ $web.Port }}')"
+                                                        type="submit">Save
+                                                    changes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+    <div aria-hidden="true" aria-labelledby="uploadGobusterModalLabel" class="modal fade" data-bs-backdrop="static"
+         data-bs-keyboard="false"
+         id="uploadGobusterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="uploadGobusterModalLabel">Upload Gobuster Scan</h1>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <form enctype="multipart/form-data" id="web-upload-form" method="POST"
+                          onsubmit="uploadGobuster(event)">
+                        <div class="mb-3">
+                            <input aria-required="true" class="form-control" id="formFileMultiple" multiple
+                                   name="files" required
+                                   type="file">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" form="web-upload-form" type="submit">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function addTab(tab) {
+            const tabList = document.getElementById("tab-list");
+            if (!tabList) return;
+
+            const existingTabButton = document.querySelector(`[data-bs-target="#${tab.id}"]`);
+            if (existingTabButton) {
+                existingTabButton.click();
+                return;
+            }
+
+            const activeClass = tabList.children.length === 0 ? "active" : "";
+
+            console.log(`Adding tab with id: ${tab.id}`);
+            tabList.insertAdjacentHTML('beforeend', `
+            <li class="nav-item">
+                <button class="nav-link ${activeClass}" data-bs-toggle="tab" data-bs-target="#${tab.id}">
+                    ${tab.title} <span class="close-tab" style="margin-left: 10px;">&times;</span>
+                </button>
+            </li>`);
+
+            const tabPane = document.getElementById(tab.id);
+            console.log(`tabPane for id ${tab.id}:`, tabPane); // Debug log
+            if (tabPane) {
+                tabPane.classList.add('show', 'active');
+            } else {
+                console.error(`Tab pane with id ${tab.id} not found in the DOM.`);
+            }
+            addCloseButtonListener();
+            saveTabs();
+        }
+
+        function addCloseButtonListener() {
+            document.querySelectorAll('.close-tab').forEach(function (closeButton) {
+                if (!closeButton.getAttribute('data-listener')) {
+                    closeButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const tabId = this.parentElement.getAttribute('data-bs-target');
+                        this.parentElement.parentElement.remove();
+                        const tabPane = document.querySelector(tabId);
+                        console.log(`Closing tabPane for id ${tabId}:`, tabPane); // Debug log
+                        if (tabPane) {
+                            tabPane.classList.remove('show', 'active');
+                        } else {
+                            console.error(`Tab pane with id ${tabId} not found in the DOM.`);
+                        }
+                        saveTabs();
+                        if (document.querySelector('.nav-link.active')) {
+                            document.querySelector('.nav-link.active').click();
+                        } else if (document.querySelector('.nav-tabs').children.length > 0) {
+                            document.querySelector('.nav-tabs').children[0].querySelector('.nav-link').click();
+                        }
+                    });
+                    closeButton.setAttribute('data-listener', 'true');
+                }
+            });
+        }
+
+        function saveTabs() {
+            const tabs = [];
+            document.querySelectorAll('.nav-tabs .nav-item').forEach(function (navItem) {
+                const button = navItem.querySelector('.nav-link');
+                const tabId = button.getAttribute('data-bs-target').substring(1);
+                const title = button.textContent.replace('×', '').trim();
+                tabs.push({id: tabId, title: title});
+            });
+            localStorage.setItem('tabs', JSON.stringify(tabs));
+        }
+
+        function saveActiveTab() {
+            const activeTab = document.querySelector('.nav-link.active');
+            if (activeTab) {
+                const activeTabId = activeTab.getAttribute('data-bs-target');
+                localStorage.setItem('activeTab', activeTabId);
+            }
+        }
+
+        function loadTabs() {
+            const tabs = JSON.parse(localStorage.getItem('tabs') || '[]');
+            tabs.forEach(function (tab) {
+                addTab(tab);
+            });
+            const activeTabId = localStorage.getItem('activeTab');
+            if (activeTabId) {
+                const activeTab = document.querySelector(`.nav-link[data-bs-target="${activeTabId}"]`);
+                if (activeTab) {
+                    document.querySelectorAll('.nav-link').forEach(function (navLink) {
+                        navLink.classList.remove('active');
+                    });
+                    document.querySelectorAll('.tab-pane').forEach(function (tabPane) {
+                        tabPane.classList.remove('show', 'active');
+                    });
+                    activeTab.classList.add('active');
+                    const activePane = document.querySelector(activeTabId);
+                    console.log(`activePane for id ${activeTabId}:`, activePane); // Debug log
+                    if (activePane) {
+                        activePane.classList.add('show', 'active');
+                    } else {
+                        console.error(`Active pane with id ${activeTabId} not found in the DOM.`);
+                    }
+                }
+            } else if (document.querySelector('.nav-tabs').children.length > 0) {
+                const firstNavLink = document.querySelector('.nav-tabs').children[0].querySelector('.nav-link');
+                if (firstNavLink) {
+                    firstNavLink.classList.add('active');
+                }
+                const firstTabContent = document.querySelector('.tab-content .tab-pane:not(#v-pills-default)');
+                if (firstTabContent) {
+                    firstTabContent.classList.add('show', 'active');
+                }
+            }
+        }
+
+        // Load saved tabs on page load
+        window.addEventListener('load', function () {
+            loadTabs();
+        });
+
+        // Add tab when a button in the offcanvas-body is clicked
+        const webBar = document.getElementById('web-bar');
+        if (webBar) {
+            webBar.addEventListener('click', function (event) {
+                if (event.target.matches('button')) {
+                    const tabId = event.target.getAttribute('data-web-tab');
+                    const displayName = event.target.getAttribute('display-name');
+                    const newTab = {
+                        id: tabId,
+                        title: displayName
+                    };
+                    addTab(newTab);
+                }
+            });
+        }
+
+        // Save active tab when a nav-link is clicked
+        document.addEventListener('click', function (event) {
+            if (event.target.matches('.nav-link')) {
+                saveActiveTab();
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Function to fetch and set note
+        async function fetchAndSetNote(url, elementID) {
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch note");
+                }
+
+                const data = await response.json();
+                console.log("API response:", data);
+                const note = data.note || "";
+
+                const textarea = document.getElementById(elementID);
+                console.log("Textarea element:", textarea);
+
+                if (textarea) {
+                    textarea.value = note;
+                    console.log("Textarea value set to:", textarea.value);
+                }
+            } catch (error) {
+                console.error("Error fetching or setting the note:", error);
+            }
+        }
+
+        // Add click event listener to all elements with the 'notes-button' class
+        document.querySelectorAll(".notes-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const webID = this.dataset.id;
+                fetchAndSetNote(`/web/note/${webID}`, `web-note-${webID}`);
+            });
+        });
+
+        // Add click event listener to all elements with the 'dir-notes-button' class
+        document.querySelectorAll(".dir-notes-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const dirID = this.dataset.id;
+                fetchAndSetNote(`/web/directory/note/${dirID}`, `dir-note-${dirID}`);
+            });
+        });
+    });
+
+    function editWebNote(e, id, ip, port) {
+        formid = "web-note-edit-form-" + id;
+        console.log(formid)
+        url = "/web/edit/note/" + id;
+
+        const form = document.forms[formid]
+        data = {
+            note: form.note.value,
+        }
+
+        success_function = function (response) {
+            window.location.reload();
+        }
+
+        postAjax(e, formid, data, url, success_function)
+    }
+
+    function editDirNote(e, id) {
+        formid = "dir-note-edit-form-" + id;
+        url = "/web/edit/directory/note/" + id;
+        console.log(url)
+
+        const form = document.forms[formid]
+        data = {
+            note: form.note.value,
+        }
+
+        success_function = function (response) {
+            window.location.reload();
+        }
+
+        postAjax(e, formid, data, url, success_function)
+    }
+
+    function uploadGobuster(e) {
+        formid = "web-upload-form";
+        url = "/web/upload";
+
+        const form = document.forms[formid]
+
+        data = new FormData()
+        for (const file of form.files.files) {
+            data.append("files", file)
+        }
+
+        success_function = function (response) {
+            window.location.reload();
+        }
+
+        postAjax(e, formid, data, url, success_function)
+    }
+
+    function editWebDetails(e, id) {
+        formid = "web-details-edit-form-" + id;
+        url = "/web/edit/details/" + id;
+
+        const form = document.forms[formid]
+        data = {
+            title: form.title.value,
+            backend: form.backend.value,
+        }
+
+        success_function = function (response) {
+            window.location.reload()
+        }
+
+        postAjax(e, formid, data, url, success_function)
+    }
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Function to save the state of a specific accordion
+        function saveAccordionState(accordionId, isExpanded) {
+            const accordionStates = JSON.parse(localStorage.getItem('accordionStates') || '{}');
+            accordionStates[accordionId] = isExpanded;
+            localStorage.setItem('accordionStates', JSON.stringify(accordionStates));
+            console.log(`Saving state for ${accordionId}: ${isExpanded}`);  // Debug log
+        }
+
+        // Function to load all accordion states
+        function loadAccordionStates() {
+            let accordionStates = JSON.parse(localStorage.getItem('accordionStates') || '{}');
+            console.log('Loading accordion states:', accordionStates);  // Debug log
+            Object.keys(accordionStates).forEach(function (accordionId) {
+                const collapseElement = document.getElementById(accordionId);
+                if (collapseElement) {
+                    const shouldExpand = accordionStates[accordionId];
+                    console.log(`Setting state for ${accordionId} to ${shouldExpand}`);  // Debug log
+                    if (shouldExpand) {
+                        collapseElement.classList.add('show');
+                        collapseElement.previousElementSibling.setAttribute('aria-expanded', 'true');
+                    } else {
+                        collapseElement.classList.remove('show');
+                        collapseElement.previousElementSibling.setAttribute('aria-expanded', 'false');
+                    }
+                } else {
+                    console.error(`Element with id ${accordionId} not found, removing entry.`);  // Debug log
+                    delete accordionStates[accordionId];
+                    localStorage.setItem('accordionStates', JSON.stringify(accordionStates));
+                }
+            });
+        }
+
+        async function fetchIds(url) {
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch note");
+                }
+
+                const data = await response.json();
+                console.log("API response:", data);
+                const ids = data.ids;
+
+                return ids;
+            } catch (error) {
+                console.error("Error fetching or setting the note:", error);
+                return [];
+            }
+        }
+
+        document.querySelectorAll('.collapse-all').forEach(function (button) {
+            button.addEventListener('click', async function (event) {
+                let targetElement = event.target;
+                const allDirs = document.querySelectorAll('[class="accordion"]');
+                const webId = targetElement.getAttribute('web-id');
+                console.log(allDirs);
+                console.log(webId);
+
+                try {
+                    const dirIds = await fetchIds(`/web/directories/${webId}`);
+                    console.log(dirIds);
+
+                    for (const id of dirIds) {
+                        const accordionId = "collapseNote-" + id
+                        saveAccordionState(accordionId, false)
+                    }
+                    window.location.reload()
+                } catch (error) {
+                    console.error("Error iterating through directory IDs:", error);
+                }
+            })
+        })
+
+        // Save accordion state when toggled
+        document.querySelectorAll('.accordion-button').forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                let targetElement = event.target;
+                while (targetElement && !targetElement.classList.contains('accordion-button')) {
+                    targetElement = targetElement.parentElement;
+                }
+                if (targetElement) {
+                    const dataBsTarget = targetElement.getAttribute('data-bs-target');
+                    if (dataBsTarget) {
+                        const collapseElementId = dataBsTarget.substring(1);
+                        setTimeout(function () {
+                            const isExpanded = targetElement.getAttribute('aria-expanded') === 'true';
+                            saveAccordionState(collapseElementId, isExpanded);
+                        }, 0);  // Delay to ensure the toggle has completed
+                    } else {
+                        console.error('data-bs-target attribute is missing from the clicked element.');  // Debug log
+                    }
+                }
+            });
+        });
+
+        // Load accordion states on page load
+        loadAccordionStates();
+    });
+</script>
+
+{{ template "error.html" .error }}
+
+{{ template "footer.html" }}

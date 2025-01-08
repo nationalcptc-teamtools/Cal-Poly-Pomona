@@ -53,7 +53,7 @@ func main() {
 	if err != nil {
 		log.Fatalln("Failed to connect database!")
 	}
-	db.AutoMigrate(&models.Box{}, &models.Port{}, &models.UserData{}, &models.Credential{}, &models.Task{})
+	db.AutoMigrate(&models.Box{}, &models.Port{}, &models.UserData{}, &models.Credential{}, &models.Task{}, &models.Web{}, &models.Directory{})
 
 	dbAddUsers(tomlConf.Admin)
 
@@ -61,6 +61,8 @@ func main() {
 	router := gin.Default()
 	router.SetFuncMap(template.FuncMap{
 		"markdown": models.RenderMarkdown,
+		"base64":   models.Base64Encode,
+		"strip":    models.RemovePeriods,
 	})
 	router.Static("/assets", "./assets")
 	router.LoadHTMLGlob("templates/*.html")

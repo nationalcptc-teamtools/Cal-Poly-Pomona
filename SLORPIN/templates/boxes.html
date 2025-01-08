@@ -5,349 +5,573 @@
 {{ $users := .users }}
 {{ $config := .config }}
 
-<button style="z-index:0;top:3rem;" class="float-start sticky-top btn btn-lg btn-outline-primary mt-4" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBoxList" aria-controls="offcanvasBoxList" title="Open menu"><i class="fa-solid fa-square-poll-horizontal"></i></button>
+<style>
+    .sidebar {
+        margin-top: 56px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 4.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 1rem;
+        z-index: 1000;
+    }
 
-<div class="mt-4 container">
-    <div class="row">
-        <ul class="nav nav-tabs mb-4" role="tablist" id="tab-list">
+    .sidebar button {
+        margin-bottom: 1rem;
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+    }
 
-        </ul>
-    </div>
-    <div class="row">
-        <div class="tab-content" id="v-pills-tabContent">
-            <div class="tab-pane fade show active" id="v-pills-default" role="tabpanel" aria-labelledby="v-pills-default-tab" tabindex="0">
-                No box selected.
-            </div>
-            {{ range $box := $boxes }}
-            {{ $claimUser := index $users $box.ClaimerID }}
-            <div class="tab-pane fade" id="v-pills-{{ $box.IP }}" role="tabpanel" aria-labelledby="v-pills-{{ $box.IP }}-tab" tabindex="0">
-                <div class="bg-light-subtle border border-light-subtle rounded-2 p-4 h-100">
-                    <h1>{{ $box.IP }}{{ if $box.Hostname }} <hr class="vr mx-2 my-0"> {{ $box.Hostname}}{{ end }}</h1>
-                    <div class="row">
-                        <div class="col col-lg-8">
-                            <table class="table border border-light-subtle">
-                                <tr>
-                                    <th>IP</th>
-                                    <td>{{ $box.IP }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Hostname</th>
-                                    <td>{{ $box.Hostname }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Ports</th>
-                                    <td>
-                                        <table class="table table-striped table-hover">
-                                            <tr>
-                                                <th>Port</th>
-                                                <th>Service</th>
-                                                <th>Version</th>
-                                                <th>Tunnel</th>
-                                            </tr>
-                                            {{ $boxPorts := index $ports $box.ID }}
-                                            {{ range $port := $boxPorts }}
-                                            <tr>
-                                                <td>
-                                                    {{ $port.Port }}/{{ $port.Protocol }}
-                                                </td>
-                                                <td>
-                                                    {{ $port.Service }}
-                                                </td>
-                                                <td>
-                                                    {{ $port.Version}}
-                                                </td>
-                                                <td>
-                                                    {{ $port.Tunnel }}
-                                                </td>
-                                            </tr>
-                                            {{ end }}
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="w-100 m-0 d-lg-none d-block"></div>
-                        <div class="col">
-                            <div class="d-flex flex-column gap-4">
-                                <div class="row gx-0">
-                                    <ul id="box-details-{{ $box.IP }}" class="list-group list-group-flush border">
-                                        <li class="list-group-item fs-2 d-flex flex-row align-items-center">
-                                            <i class="fa-fw fa-regular fa-user"></i>
-                                            <div class="ms-4">
-                                                <div class="fs-6">User Shells</div>
-                                                <div id="box-details-usershells-{{ $box.IP }}" data-ajax="usershells" data-boxId="{{ $box.IP }}">{{ $box.Usershells }}</div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item fs-2 d-flex flex-row align-items-center">
-                                            <i class="fa-fw fa-solid fa-skull-crossbones"></i>
-                                            <div class="ms-4">
-                                                <div class="fs-6">Root Shells</div>
-                                                <div id="box-details-rootshells-{{ $box.IP }}" data-ajax="rootshells" data-boxId="{{ $box.ID }}">{{ $box.Rootshells }}</div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item fs-2 d-flex flex-row align-items-center">
-                                            <i class="fa-fw fa-solid fa-street-view"></i>
-                                            <div class="ms-4">
-                                                <div class="fs-6">Claim</div>
-                                                <div id="box-details-claim-{{ $box.IP }}" data-ajax="claim" data-boxId="{{ $box.ID }}">{{ if ne $box.ClaimerID 0 }}{{ $claimUser.Name }}{{ else }}Unclaimed{{ end }}</div>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                    <a type="button" class="btn btn-link w-auto link-underline link-underline-opacity-0 link-underline-opacity-100-hover" data-bs-toggle="modal" data-bs-target="#box-details-edit-{{ $box.IP }}">
-                                        Edit...
-                                    </a>
-                                </div>
+    .sidebar button i {
+        pointer-events: none;
+    }
 
-                                <div class="modal fade" id="box-details-edit-{{ $box.IP }}" tabindex="-1" aria-labelledby="box-details-edit-{{ $box.IP }}Label" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h1 class="modal-title fs-5" id="box-details-edit-{{ $box.IP }}Label">Edit Box Details</h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <form onsubmit="return editBoxDetails(event, '{{ $box.ID }}', '{{ $box.IP }}')" id="box-details-edit-form-{{ $box.IP }}">
-                                                    <div class="row">
-                                                        <div class="col input-group mb-3">
-                                                            <span class="input-group-text" id="usershell-addon-{{ $box.IP }}">User Shells</span>
-                                                            <input value="{{ $box.Usershells }}" name="usershells" type="numeric" class="form-control" placeholder="0" aria-label="User shells" aria-describedby="usershell-addon-{{ $box.IP }}">
-                                                        </div>
-                                                        <div class="col input-group mb-3">
-                                                            <span class="input-group-text" id="rootshell-addon-{{ $box.IP }}">Root Shells</span>
-                                                            <input value="{{ $box.Rootshells }}" name="rootshells" type="numeric" class="form-control" placeholder="0" aria-label="Root shells" aria-describedby="rootshell-addon-{{ $box.IP }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col">
-                                                            <div class="col input-group mb-3">
-                                                                <span class="input-group-text" id="claim-addon-{{ $box.IP }}">Claim</span>
-                                                                <select name="claim" class="form-select" aria-label="Assign a claim">
-                                                                    <option value="0" {{ if eq $box.ClaimerID 0}}selected{{ end }}>Unclaimed</option>
-                                                                    {{ range $user := $users }}
-                                                                    <option value="{{ $user.ID }}" {{ if and (ne $box.ClaimerID 0) (eq $user.ID $box.ClaimerID) }}selected{{ end }}>{{ $user.Name}}</option>
-                                                                    {{ end }}
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary" form="box-details-edit-form-{{ $box.IP }}">Save changes</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <div class="accordion" id="accordionNote-{{ $box.IP }}">
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNote-{{ $box.IP }}" aria-expanded="true" aria-controls="collapseNote-{{ $box.IP }}" style="border-bottom: 5px solid #343A40;">
-                                        <strong>Notes</strong>
-                                        </button>
-                                    </h2>
-                                    <div id="collapseNote-{{ $box.IP }}" class="accordion-collapse collapse show" data-bs-parent="#accordionNote-{{ $box.IP }}">
-                                        <div id="box-note-rendered-{{ $box.IP }}" class="accordion-body">
-                                            <div>
-                                                {{ if gt (len $box.Note) 0 }}{{ $box.Note | markdown }}{{ else }}No notes yet.{{ end }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <a type="button" class="btn btn-link w-auto link-underline link-underline-opacity-0 link-underline-opacity-100-hover notes-button" data-id="{{ $box.ID }}" data-ip="{{ $box.IP }}">
-                                Edit...
-                            </a>
-                        </div>
-                        <div class="modal fade" id="box-note-edit-{{ $box.IP }}" tabindex="-1" aria-labelledby="box-note-edit-{{ $box.IP }}Label" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h1 class="modal-title fs-5" id="box-note-edit-{{ $box.IP }}Label">Edit Box Notes</h1>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form id="box-note-edit-form-{{ $box.IP }}">
-                                            <textarea id="note-{{ $box.IP }}" rows="20" name="note" class="form-control" placeholder="Write box notes here (supports markdown)"></textarea>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-primary" form="box-note-edit-form-{{ $box.IP }}" onclick="editBoxNote(event, '{{ $box.ID }}', '{{ $box.IP }}')">Save changes</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {{ end }}
-        </div>
-    </div>
+    .tab-pane {
+        display: none;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    .edit-hover:hover {
+        background-color: dodgerblue;
+    }
+
+</style>
+
+
+<!--SIDE BUTTONS-->
+<div class="sidebar">
+    <button
+            class="btn btn-lg btn-outline-primary"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#uploadNmapModal"
+            aria-controls="uploadNmapModal"
+            title="Upload">
+        <i class="fa-solid fa-file-upload"></i>
+    </button>
+
+    <button
+            class="btn btn-lg btn-outline-primary"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasBoxList"
+            aria-controls="offcanvasBoxList"
+            title="Filter">
+        <i class="fa-solid fa-filter"></i>
+    </button>
 </div>
-<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasBoxList" aria-labelledby="offcanvasBoxListLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasBoxListLabel">Actions</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-  <div class="offcanvas-body">
-    <div class="hstack gap-2 w-auto mb-4">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadNmapModal">
-            Upload NMAP XML
-        </button>
-        <div class="vr"></div>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
-            Advanced Filter Boxes
-        </button>
-    </div>
-    <h5 class="mb-4">Filters</h5>
-    <div class="hstack gap-2 w-auto mb-4" id="filter-radios">
-        <input type="radio" class="btn-check" name="all-filter" id="all-boxes" value="all" autocomplete="off" checked>
-        <label class="btn btn-primary rounded-pill" for="all-boxes">All Boxes</label>
-        <div class="vr"></div>
 
-        <input type="radio" class="btn-check" name="claim-filter" id="claimed" value="claimed" autocomplete="off">
-        <label class="btn btn-primary rounded-pill" for="claimed">All Claimed Boxes</label>
-
-        <input type="radio" class="btn-check" name="claim-filter" id="yours" value="yours" autocomplete="off">
-        <label class="btn btn-primary rounded-pill" for="yours">My Claimed Boxes</label>
-
-        <input type="radio" class="btn-check" name="claim-filter" id="unclaimed" value="unclaimed" autocomplete="off">
-        <label class="btn btn-primary rounded-pill" for="unclaimed">Unclaimed Boxes</label>
-        <div class="vr"></div>
-
-
-        <input type="radio" class="btn-check" name="pwn-filter" id="unpwned" value="unpwned" autocomplete="off">
-        <label class="btn btn-primary rounded-pill" for="unpwned">Unpwned Boxes</label>
-
-        <input type="radio" class="btn-check" name="pwn-filter" id="pwned" value="pwned" autocomplete="off">
-        <label class="btn btn-primary rounded-pill" for="pwned">Pwned Boxes</label>
-    </div>
-    {{ if ne (len $boxes) 0 }}
-    <h5 class="mb-4">Boxes</h5>
-    <div class="list-group list-group-flush" id="box-bar">
-        {{ range $box := $boxes }}
-        <button class="list-group-item list-group-item-action"
-                id="v-pills-{{ $box.IP }}-tab"
-                data-claim="{{ if ne $box.ClaimerID 0}}{{ $claimer := index $users $box.ClaimerID }}{{ $claimer.Name }}{{ else }}unclaimed{{ end }}"
-                data-pwned="{{ or (gt $box.Usershells 0) (gt $box.Rootshells 0) }}"
-                data-bs-toggle="pill"
-                data-bs-target="#v-pills-{{ $box.IP }}"
-                data-box-tab="box-tab-{{ $box.IP }}"
-                type="button"
-                role="tab"
-                aria-controls="v-pills-{{ $box.IP }}"
-                aria-selected="true"
-                data-ports="{{ $boxPorts := index $ports $box.ID }}{{ range $index, $port := $boxPorts }}{{if $index}},{{end}}{{ $port.Port }}{{ end }}">
-
-                {{ $box.IP }}
-                {{ if $box.Hostname }} ({{ $box.Hostname }}) {{ end }}
-                {{ if ne $box.ClaimerID 0 }}{{ $claimer := index $users $box.ClaimerID }}<hr class="vr mx-2 my-0">{{ $claimer.Name }}{{ end }}
-        </button>
-        {{ end }}
-    </div>
-    {{ else }}
-    <p>Nothing to show right now. Upload NMAP results to view.</p>
-    {{ end }}
-  </div>
-</div>
 
 <div class="modal fade" id="uploadNmapModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uploadNmapModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="uploadNmapModalLabel">Upload NMAP XML</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="uploadNmapModalLabel">Upload NMAP XML</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="box-upload-form" method="POST" enctype="multipart/form-data" onsubmit="uploadNmap(event)">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" name="files" id="formFileMultiple" multiple required aria-required="true">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" form="box-upload-form">Upload</button>
+            </div>
         </div>
-        <div class="modal-body">
-            <form id="box-upload-form" method="POST" enctype="multipart/form-data" onsubmit="uploadNmap(event)">
-                <div class="mb-3">
-                    <label for="formFileMultiple" class="form-label">NMAP XML File</label>
-                    <input type="file" class="form-control" name="files" id="formFileMultiple" multiple required aria-required="true">
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" form="box-upload-form">Upload</button>
-        </div>
-      </div>
     </div>
 </div>
 
-<div class="modal fade" id="filterModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="filterModalLabel">Advanced Filter Boxes</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div aria-labelledby="offcanvasBoxListLabel" class="offcanvas offcanvas-start" id="offcanvasBoxList" style="width: 325px" tabindex="-1">
+    <div class="offcanvas-header" style="margin-bottom: 0; padding-bottom: 0">
+        <h3 class="offcanvas-title" id="offcanvasBoxListLabel"><i class="fa-solid fa-filter" style="margin-right: 15px"></i>Filter</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="hstack gap-2 w-auto mb-4"></div>
+
+        <h5 class="mt-0 mb-3" style="color: dodgerblue">Prepared</h5>
+        <div class="gap-2 w-auto mb-3" id="filter-checkboxs">
+            <div class="form-check mx-3" style="display: none">
+                <input autocomplete="off" checked class="form-check-input" id="all-boxes" name="all-filter" type="checkbox" value="all">
+                <label class="form-check-label" for="all-boxes">all</label>
+            </div>
+
+            <div class="form-check mx-3">
+                <input autocomplete="off" class="form-check-input" id="yours" name="claim-filter" type="checkbox" value="yours">
+                <label class="form-check-label" for="yours">my claimed</label>
+            </div>
+
+            <div class="form-check mx-3">
+                <input autocomplete="off" class="form-check-input" id="claimed" name="claim-filter" type="checkbox" value="claimed">
+                <label class="form-check-label" for="claimed">claimed</label>
+            </div>
+
+            <div class="form-check mx-3">
+                <input autocomplete="off" class="form-check-input" id="unclaimed" name="claim-filter" type="checkbox" value="unclaimed">
+                <label class="form-check-label" for="unclaimed">unclaimed</label>
+            </div>
+
+            <div class="form-check mx-3">
+                <input autocomplete="off" class="form-check-input" id="unpwned" name="pwn-filter" type="checkbox" value="unpwned">
+                <label class="form-check-label" for="unpwned">unpwned</label>
+            </div>
+
+            <div class="form-check mx-3">
+                <input autocomplete="off" class="form-check-input" id="pwned" name="pwn-filter" type="checkbox" value="pwned">
+                <label class="form-check-label" for="pwned">pwned</label>
+            </div>
         </div>
-        <div class="modal-body">
-            <form id="box-filter-form" onsubmit="filterBoxes(event)">
-                <div class="mb-3">
-                    <label for="portFilter" class="form-label">Find Boxes by Port</label>
-                    <p class="form-text">Use a comma separated list of ports (will use OR matching)</p>
-                    <div class="input-group mb-3">
-                        <span class="input-group-text" id="basic-addon1">Open</span>
-                        <input name="filter-ports" type="text" class="form-control" placeholder="Find with open port" aria-describedby="basic-addon1">
+
+
+        <h5 class="mt-5 mb-3" style="color: dodgerblue">Port</h5>
+        <div class="mb-4 mx-2">
+            <div class="input-group">
+                <span class="input-group-text" id="basic-addon1">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input id="filter-ports" name="filter-ports" type="text" class="form-control" placeholder="#" aria-describedby="basic-addon1" oninput="filterBoxes(event)">
+            </div>
+        </div>
+
+        <h5 class="mt-5 mb-2" style="color: dodgerblue">Boxes</h5>
+        {{ if ne (len $boxes) 0 }}
+
+        <div class="list-group list-group-flush" id="box-bar">
+            {{ range $box := $boxes }}
+            <button class="list-group-item list-group-item-action"
+                    id="v-pills-{{ $box.ID }}b-tab"
+                    data-claim="{{ if ne $box.ClaimerID 0}}{{ $claimer := index $users $box.ClaimerID }}{{ $claimer.Name }}{{ else }}unclaimed{{ end }}"
+                    data-pwned="{{ or (gt $box.Usershells 0) (gt $box.Rootshells 0) }}"
+                    data-bs-toggle="pill"
+                    data-bs-target="#v-pills-{{ $box.ID }}b"
+                    data-box-tab="box-tab-{{ $box.ID }}b"
+                    display-name="{{ $box.IP }} {{ if $box.Hostname }} ({{ $box.Hostname }}) {{ end }}"
+                    type="button"
+                    role="tab"
+                    aria-controls="v-pills-{{ $box.ID }}b"
+                    aria-selected="true"
+                    data-ports="{{ $boxPorts := index $ports $box.ID }}{{ range $index, $port := $boxPorts }}{{if $index}},{{end}}{{ $port.Port }}{{ end }}"
+                    style="border-bottom: 0">
+
+                {{ $box.IP }}
+                {{ if $box.Hostname }} ({{ $box.Hostname }}){{ end }}
+                {{ if $box.OS }}<hr class="vr mx-2 my-0">{{ $box.OS }}{{ end }}
+            </button>
+            {{ end }}
+        </div>
+        {{ else }}
+        <p>Nothing to show right now. Upload NMAP results to view.</p>
+        {{ end }}
+    </div>
+</div>
+
+<!--MAIN-->
+<div class="mt-4 container">
+    <div class="row">
+        <ul class="nav nav-tabs mb-4" role="tablist" id="tab-list"></ul>
+    </div>
+    <div class="row">
+        <div class="tab-content" id="v-pills-tabContent">
+            <div aria-labelledby="v-pills-default-tab" class="tab-pane fade" id="v-pills-default" role="tabpanel"
+                 tabindex="0">
+                No box selected.
+            </div>
+            <div class="row">
+                {{ range $box := $boxes }}
+                {{ $claimUser := index $users $box.ClaimerID }}
+                <div aria-labelledby="box-tab-{{ $box.ID }}-tab" class="tab-pane fade" id="box-tab-{{ $box.ID }}b"
+                     role="tabpanel" tabindex="0">
+                    <div class="bg-light-subtle border border-light-subtle rounded-2 p-4 h-100">
+                        <div class="row">
+                            <div class="col-12 col-xl-3">
+                                <h1 style="margin-left: 3px">{{ $box.IP }}</h1>
+                                <div class="row gx-0 my-4">
+                                    <ul id="box-details-{{ $box.ID }}b" class="list-group list-group-flush border" style="border-radius: 15px">
+                                        <li class="list-group-item fs-4 d-flex flex-row align-items-center">
+                                            <i class="fs-5 fa-fw fa-solid fa-tag"></i>
+                                            <div class="ms-4" style="overflow-y: auto">
+                                                <div class="fs-6">Hostname</div>
+                                                <div class="fs-5">{{ if $box.Hostname}}{{ $box.Hostname }}{{ else }}N/A{{ end }}</div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-4 d-flex flex-row align-items-center">
+                                            <i class="fs-5 fa-fw fa-solid fa-layer-group"></i>
+                                            <div class="ms-4" style="overflow-y: auto">
+                                                <div class="fs-6">Operating System</div>
+                                                <div class="fs-5">{{ $box.OS }}</div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-4 d-flex flex-row align-items-center">
+                                            <i class="fs-5 fa-fw fa-regular fa-user"></i>
+                                            <div class="ms-4">
+                                                <div class="fs-6">User Shells</div>
+                                                <div class="fs-5" id="box-details-usershells-{{ $box.ID }}b" data-boxId="{{ $box.ID }}b">{{ $box.Usershells }}</div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-4 d-flex flex-row align-items-center">
+                                            <i class="fs-5 fa-fw fa-solid fa-skull-crossbones"></i>
+                                            <div class="ms-4">
+                                                <div class="fs-6">Root Shells</div>
+                                                <div class="fs-5" id="box-details-rootshells-{{ $box.ID }}b" data-boxId="{{ $box.ID }}">{{ $box.Rootshells }}</div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-4 d-flex flex-row align-items-center">
+                                            <i class="fs-5 fa-fw fa-solid fa-street-view"></i>
+                                            <div class="ms-4">
+                                                <div class="fs-6">Claim</div>
+                                                <div class="fs-5" id="box-details-claim-{{ $box.ID }}b" data-boxId="{{ $box.ID }}">{{ if ne $box.ClaimerID 0 }}{{ $claimUser.Name }}{{ else }}Unclaimed{{ end }}</div>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item fs-6 d-flex flex-row justify-content-center my-0 py-1 edit-hover"
+                                            data-bs-toggle="modal" data-bs-target="#box-details-edit-{{ $box.ID }}b" type="button">
+                                            Edit
+                                        </li>
+                                    </ul>
+
+
+                                    <div class="modal fade" id="box-details-edit-{{ $box.ID }}b" tabindex="-1" aria-labelledby="box-details-edit-{{ $box.ID }}bLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h1 class="modal-title fs-5" id="box-details-edit-{{ $box.ID }}bLabel">Edit Box Details</h1>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form onsubmit="return editBoxDetails(event, '{{ $box.ID }}', '{{ $box.ID }}b')" id="box-details-edit-form-{{ $box.ID }}b">
+                                                        <div class="row">
+                                                            <div class="col input-group mb-3">
+                                                                <span class="input-group-text" id="usershell-addon-{{ $box.ID }}b">User Shells</span>
+                                                                <input value="{{ $box.Usershells }}" name="usershells" type="numeric" class="form-control" placeholder="0" aria-label="User shells" aria-describedby="usershell-addon-{{ $box.ID }}b">
+                                                            </div>
+                                                            <div class="col input-group mb-3">
+                                                                <span class="input-group-text" id="rootshell-addon-{{ $box.ID }}b">Root Shells</span>
+                                                                <input value="{{ $box.Rootshells }}" name="rootshells" type="numeric" class="form-control" placeholder="0" aria-label="Root shells" aria-describedby="rootshell-addon-{{ $box.ID }}b">
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col">
+                                                                <div class="col input-group mb-3">
+                                                                    <span class="input-group-text" id="claim-addon-{{ $box.ID }}b">Claim</span>
+                                                                    <select name="claim" class="form-select" aria-label="Assign a claim">
+                                                                        <option value="0" {{ if eq $box.ClaimerID 0}}selected{{ end }}>Unclaimed</option>
+                                                                        {{ range $user := $users }}
+                                                                        <option value="{{ $user.ID }}" {{ if and (ne $box.ClaimerID 0) (eq $user.ID $box.ClaimerID) }}selected{{ end }}>{{ $user.Name}}</option>
+                                                                        {{ end }}
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-primary" form="box-details-edit-form-{{ $box.ID }}b">Save changes</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col col-sm-12 col-md-12 col-lg-12 col-xl-9">
+                                <div class="mt-0">
+                                    <div class="distributed bolded">
+                                        <span class="fs-5">Port</span>
+                                        <span class="fs-5">Service</span>
+                                        <span class="fs-5">Version</span>
+                                    </div>
+                                    <hr class="custom-line">
+                                    <table class="ports">
+                                        {{ $boxPorts := index $ports $box.ID }}
+                                        {{ range $port := $boxPorts }}
+                                        <div class="accordion" id="accordionNote-{{ $port.Port }}">
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button aria-controls="collapseNote-{{ $port.Port }}"
+                                                            aria-expanded="false" class="port-button accordion-button collapsed distributed"
+                                                            data-bs-target="#collapseNote-{{ $port.Port }}"
+                                                            data-bs-toggle="collapse"
+                                                            type="button">
+                                                        <span>{{ $port.Port }}/{{ $port.Protocol }}</span>
+                                                        <span>{{ $port.Service }}</span>
+                                                        <span>{{ $port.Version }}</span>
+                                                    </button>
+                                                </h2>
+                                                <div class="accordion-collapse collapse"
+                                                     data-bs-parent="#accordionNote-{{ $port.Port }}"
+                                                     id="collapseNote-{{ $port.Port }}">
+                                                    <div class="accordion-body"
+                                                         id="box-note-rendered-{{ $port.Port }}"
+                                                         style="overflow-y: auto;">
+                                                        <pre>{{ $port.Fingerprint }}</pre>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{ end }}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <h3 class="fs-5 mt-4">Notes</h3>
+                                <hr class="custom-line">
+                                <table class="table" style="margin-bottom: 0;">
+                                    <td class="py-3 px-3" style="border-radius: 5px">
+                                        {{ if gt (len $box.Note) 0 }}{{ $box.Note | markdown }}{{ else }}No notes yet.{{ end }}
+                                        <div class="d-flex justify-content-end">
+                                            <a type="button"
+                                               class="btn btn-link w-auto link-underline link-underline-opacity-0 link-underline-opacity-100-hover notes-button py-0"
+                                               data-bs-target="#box-note-edit-{{ $box.ID }}b"
+                                               data-bs-toggle="modal"
+                                               data-id="{{ $box.ID }}"
+                                               data-ip="{{ $box.IP }}"
+                                               style="margin-top: 0">
+                                                <i class="fas fa-pen"></i> Edit
+                                            </a>
+                                        </div>
+                                    </td>
+                                </table>
+                            </div>
+                            <div class="modal fade" id="box-note-edit-{{ $box.ID }}b" tabindex="-1" aria-labelledby="box-note-edit-{{ $box.ID }}bLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="box-note-edit-{{ $box.ID }}bLabel">Edit Box Notes</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="box-note-edit-form-{{ $box.ID }}b">
+                                                <textarea id="box-note-{{ $box.ID }}"
+                                                          rows="20"
+                                                          name="note"
+                                                          class="form-control"
+                                                          placeholder="Write box notes here (supports markdown)"></textarea>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-primary" form="box-note-edit-form-{{ $box.ID }}b" onclick="editBoxNote(event, '{{ $box.ID }}')">Save changes</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </form>
+                {{ end }}
+            </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary" form="box-filter-form">Apply Filter</button>
-        </div>
-      </div>
     </div>
 </div>
 
 <script>
-    const allRadio      = document.getElementById('all-boxes');
-    const claimRadio    = document.querySelectorAll('input[name="claim-filter"]');
-    const pwnRadio      = document.querySelectorAll('input[name="pwn-filter"]');
+    // TABS
+    document.addEventListener("DOMContentLoaded", function () {
+        function addTab(tab) {
+            const tabList = document.getElementById("tab-list");
+            if (!tabList) return;
 
-    claimRadio.forEach(radio => {
-        radio.addEventListener('change', () => {
-            if (radio.checked) {
-                allRadio.checked = false;
+            console.log(tab.id)
+
+            const existingTabButton = document.querySelector(`[data-bs-target="#${tab.id}"]`);
+            if (existingTabButton) {
+                existingTabButton.click();
+                return;
+            }
+
+            const activeClass = tabList.children.length === 0 ? "active" : "";
+
+            console.log(`Adding tab with id: ${tab.id}`);
+            tabList.insertAdjacentHTML('beforeend', `
+            <li class="nav-item">
+                <button class="nav-link ${activeClass}" data-bs-toggle="tab" data-bs-target="#${tab.id}">
+                    ${tab.title} <span class="close-tab" style="margin-left: 10px;">&times;</span>
+                </button>
+            </li>`);
+
+            const tabPane = document.getElementById(tab.id);
+            console.log(`tabPane for id ${tab.id}:`, tabPane); // Debug log
+            if (tabPane) {
+                tabPane.classList.add('show', 'active');
+            } else {
+                console.error(`Tab pane with id ${tab.id} not found in the DOM.`);
+            }
+            addCloseButtonListener();
+            saveTabs();
+        }
+
+        function addCloseButtonListener() {
+            document.querySelectorAll('.close-tab').forEach(function (closeButton) {
+                if (!closeButton.getAttribute('data-listener')) {
+                    closeButton.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const tabId = this.parentElement.getAttribute('data-bs-target');
+                        this.parentElement.parentElement.remove();
+                        const tabPane = document.querySelector(tabId);
+                        console.log(`Closing tabPane for id ${tabId}:`, tabPane); // Debug log
+                        if (tabPane) {
+                            tabPane.classList.remove('show', 'active');
+                        } else {
+                            console.error(`Tab pane with id ${tabId} not found in the DOM.`);
+                        }
+                        saveTabs();
+                        if (document.querySelector('.nav-link.active')) {
+                            document.querySelector('.nav-link.active').click();
+                        } else if (document.querySelector('.nav-tabs').children.length > 0) {
+                            document.querySelector('.nav-tabs').children[0].querySelector('.nav-link').click();
+                        }
+                    });
+                    closeButton.setAttribute('data-listener', 'true');
+                }
+            });
+        }
+
+        function saveTabs() {
+            const tabs = [];
+            document.querySelectorAll('.nav-tabs .nav-item').forEach(function (navItem) {
+                const button = navItem.querySelector('.nav-link');
+                const tabId = button.getAttribute('data-bs-target').substring(1);
+                const title = button.textContent.replace('×', '').trim();
+                tabs.push({id: tabId, title: title});
+            });
+            localStorage.setItem('boxTabs', JSON.stringify(tabs));
+        }
+
+        function saveActiveTab() {
+            const activeTab = document.querySelector('button.nav-link.active');
+            console.log(activeTab)
+            if (activeTab) {
+                const activeTabId = activeTab.getAttribute('data-bs-target');
+                localStorage.setItem('activeBoxTab', activeTabId);
+            }
+        }
+
+        function loadTabs() {
+            const tabs = JSON.parse(localStorage.getItem('boxTabs') || '[]');
+            tabs.forEach(function (tab) {
+                addTab(tab);
+            });
+            const activeTabId = localStorage.getItem('activeBoxTab');
+            console.log(activeTabId)
+            if (activeTabId) {
+                const activeTab = document.querySelector(`.nav-link[data-bs-target="${activeTabId}"]`);
+                console.log(activeTab)
+                if (activeTab) {
+                    document.querySelectorAll('.nav-link').forEach(function (navLink) {
+                        navLink.classList.remove('active');
+                    });
+                    document.querySelectorAll('.tab-pane').forEach(function (tabPane) {
+                        tabPane.classList.remove('show', 'active');
+                    });
+                    activeTab.classList.add('active');
+                    const activePane = document.querySelector(activeTabId);
+                    console.log(`activePane for id ${activeTabId}:`, activePane); // Debug log
+                    if (activePane) {
+                        activePane.classList.add('show', 'active');
+                    } else {
+                        console.error(`Active pane with id ${activeTabId} not found in the DOM.`);
+                    }
+                }
+            } else if (document.querySelector('.nav-tabs').children.length > 0) {
+                const firstNavLink = document.querySelector('.nav-tabs').children[0].querySelector('.nav-link');
+                console.log(firstNavLink)
+                if (firstNavLink) {
+                    firstNavLink.classList.add('active');
+                }
+                const firstTabContent = document.querySelector('.tab-content .tab-pane:not(#v-pills-default)');
+                console.log(firstTabContent)
+                if (firstTabContent) {
+                    firstTabContent.classList.add('show', 'active');
+                }
+            }
+        }
+
+        // Load saved tabs on page load
+        window.addEventListener('load', function () {
+            loadTabs();
+        });
+
+        // Add tab when a button in the offcanvas-body is clicked
+        const boxBar = document.getElementById('box-bar');
+        if (boxBar) {
+            boxBar.addEventListener('click', function (event) {
+                if (event.target.matches('button')) {
+                    const tabId = event.target.getAttribute('data-box-tab');
+                    const displayName = event.target.getAttribute('display-name');
+                    console.log(tabId)
+                    const newTab = {
+                        id: tabId,
+                        title: displayName
+                    };
+                    addTab(newTab);
+                }
+            });
+        }
+
+        // Save active tab when a nav-link is clicked
+        document.addEventListener('click', function (event) {
+            if (event.target.matches('.nav-link')) {
+                saveActiveTab();
+            }
+        });
+    });
+    
+    // FILTER
+    const allcheckbox = document.getElementById('all-boxes');
+    const claimcheckbox = document.querySelectorAll('input[name="claim-filter"]');
+    const pwncheckbox = document.querySelectorAll('input[name="pwn-filter"]');
+
+    claimcheckbox.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                allcheckbox.checked = false;
             }
         })
     });
 
-    pwnRadio.forEach(radio => {
-        radio.addEventListener('change', () => {
-            if (radio.checked) {
-                allRadio.checked = false;
+    pwncheckbox.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                allcheckbox.checked = false;
             }
         })
     });
 
-    allRadio.addEventListener('click', () => {
-        claimRadio.forEach(radio => {
-            radio.checked = false;
+    allcheckbox.addEventListener('click', () => {
+        claimcheckbox.forEach(checkbox => {
+            checkbox.checked = false;
         });
-        pwnRadio.forEach(radio => {
-            radio.checked = false;
+        pwncheckbox.forEach(checkbox => {
+            checkbox.checked = false;
         });
     });
 
-    const allClaimedRadio = document.getElementById('claimed');
-    const yourClaimedRadio = document.getElementById('yours');
-    const unClaimedRadio = document.getElementById('unclaimed');
-    const pwnedRadio = document.getElementById('pwned');
-    const unpwnedRadio = document.getElementById('unpwned');
+    const allClaimedcheckbox = document.getElementById('claimed');
+    const yourClaimedcheckbox = document.getElementById('yours');
+    const unClaimedcheckbox = document.getElementById('unclaimed');
+    const pwnedcheckbox = document.getElementById('pwned');
+    const unpwnedcheckbox = document.getElementById('unpwned');
+    const linuxcheckbox = document.getElementById('linux');
+    const windowscheckbox = document.getElementById('windows');
 
-    const radioBar  = document.getElementById('filter-radios');
+    const checkboxBar = document.getElementById('filter-checkboxs');
     const boxes     = document.querySelectorAll('#box-bar .list-group-item-action');
 
-    radioBar.addEventListener('click', (event) => {
-        if(event.target && event.target.matches("input[type='radio']")) {
+    checkboxBar.addEventListener('click', (event) => {
+        if (event.target && event.target.matches("input[type='checkbox']")) {
             let boxcount = 0;
 
             boxes.forEach((box) => {
@@ -355,15 +579,15 @@
                 let claimBool = false;
                 let pwnBool = false;
 
-                if ((allClaimedRadio.checked && box.getAttribute('data-claim') != "unclaimed") ||
-                    (yourClaimedRadio.checked && box.getAttribute('data-claim') == '{{ .user.Name }}') ||
-                    (unClaimedRadio.checked && box.getAttribute('data-claim') == "unclaimed") ||
-                    (!allClaimedRadio.checked && !yourClaimedRadio.checked && !unClaimedRadio.checked)) {
+                if ((allClaimedcheckbox.checked && box.getAttribute('data-claim') != "unclaimed") ||
+                    (yourClaimedcheckbox.checked && box.getAttribute('data-claim') == '{{ .user.Name }}') ||
+                    (unClaimedcheckbox.checked && box.getAttribute('data-claim') == "unclaimed") ||
+                    (!allClaimedcheckbox.checked && !yourClaimedcheckbox.checked && !unClaimedcheckbox.checked)) {
                     claimBool = true;
                 }
-                if ((pwnedRadio.checked && box.getAttribute('data-pwned') == "true") ||
-                    (unpwnedRadio.checked && box.getAttribute('data-pwned') == "false") ||
-                    (!pwnedRadio.checked && !unpwnedRadio.checked)) {
+                if ((pwnedcheckbox.checked && box.getAttribute('data-pwned') == "true") ||
+                    (unpwnedcheckbox.checked && box.getAttribute('data-pwned') == "false") ||
+                    (!pwnedcheckbox.checked && !unpwnedcheckbox.checked)) {
                     pwnBool = true;
                 }
                 if((claimBool && pwnBool) || event.target.matches('#all-boxes')) {
@@ -373,14 +597,12 @@
                     box.style.display = "none";
                 }
             })
-            // document.getElementById('result-header').textContent = 'Showing ' + boxcount + '/{{ len .boxes }} boxes'
         }
     })
 
     const boxBar  = document.getElementById('box-bar');
     const tabList  = document.getElementById('tab-list');
     const defaultPane  = document.getElementById('v-pills-default');
-    // get rid of "no box selected pane"
 
     boxBar.addEventListener('click', (event) => {
         if(event.target && event.target.matches(".list-group-item-action")) {
@@ -388,171 +610,73 @@
         }
     })
 
-    document.addEventListener('DOMContentLoaded', (event) => {
-        function renderBoxNote(e, id, ip) {
-            e.preventDefault();
+    document.addEventListener("DOMContentLoaded", function () {
+        // Function to fetch and set note
+        async function fetchAndSetNote(url, elementID) {
+            try {
+                const response = await fetch(url);
 
-            const url = "/boxes/note/" + id;
-            const textarea = document.getElementById('note-' + ip);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch note");
+                }
 
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Server response:', data);
-                    if (data.status) {
-                        textarea.value = data.note;
-                        const modal = new bootstrap.Modal(document.getElementById('box-note-edit-' + ip));
-                        modal.show();
-                    } else {
-                        createToast("Failed to load the note", "bg-danger");
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    createToast("An error occurred while loading the note", "bg-danger");
-                });
+                const data = await response.json();
+                console.log("API response:", data);
+                const note = data.note || "";
+
+                const textarea = document.getElementById(elementID);
+                console.log("Textarea element:", textarea);
+
+                if (textarea) {
+                    textarea.value = note;
+                    console.log("Textarea value set to:", textarea.value);
+                }
+            } catch (error) {
+                console.error("Error fetching or setting the note:", error);
+            }
         }
 
-        document.querySelectorAll('.notes-button').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const id = button.getAttribute('data-id');
-                const ip = button.getAttribute('data-ip');
-                renderBoxNote(event, id, ip);
+        // Add click event listener to all elements with the 'notes-button' class
+        document.querySelectorAll(".notes-button").forEach(button => {
+            button.addEventListener("click", function () {
+                const boxID = this.dataset.id;
+                fetchAndSetNote(`/boxes/note/${boxID}`, `box-note-${boxID}`);
             });
         });
-    });
-
-    function createBoxTab(ip) {
-        box = document.querySelector(`[data-box-tab="${ip}"]`)
-        li = document.createElement("li")
-        li.classList.add("nav-item")
-        li.id = ip+"-parent"
-
-        closeButton = document.createElement("button")
-        closeButton.type = "button"
-        closeButton.classList.add("btn-close")
-        closeButton.setAttribute("aria-label", "Close")
-        closeButton.setAttribute("data-close", li.id)
-        closeButton.addEventListener('click', (event) => {
-            document.getElementById(event.target.getAttribute("data-close")).remove()
-            document.getElementById(box.getAttribute("data-bs-target").replace("#","")).classList.remove("active")
-            if (window.location.hash.includes(","))
-            {
-                boxList = window.location.hash.split(",").filter(element => element != event.target.getAttribute("data-close").replace("-parent",""))
-                window.location.hash = boxList.join(",")
-            } else {
-                window.location.hash = ""
-            }
-            if (!hash) {
-                defaultPane.classList.add("active")
-            }
-        })
-
-        newTab = document.createElement("button")
-        newTab.id = ip
-        newTab.classList.add("nav-link")
-        newTab.setAttribute("data-bs-target", box.getAttribute("data-bs-target"))
-        newTab.setAttribute("data-bs-toggle", "pill")
-        newTab.type = "button"
-        newTab.role = "tab"
-        newTab.setAttribute("aria-controls", box.getAttribute("aria-controls"))
-        newTab.textContent = box.textContent
-
-        newTab.appendChild(closeButton)
-        li.appendChild(newTab)
-        tabList.appendChild(li)
-        return new bootstrap.Tab(newTab)
-    }
-
-    // probably need to clean this up
-    boxes.forEach((box) => {
-        box.addEventListener('click', (event) => {
-            id = box.getAttribute("data-box-tab")
-            if (document.getElementById(id) != null) {
-                return
-            }
-            var hash = location.hash.replace(/^#/, '');
-            if (hash) {
-                if (!hash.split(",").includes(id)) {
-                    window.location.hash += ","+id;
-                }
-            } else {
-                window.location.hash += id;
-            }
-
-            createBoxTab(id)
-        })
     })
 
-    // Javascript to enable link to tab (save state)
-    var hash = location.hash.replace(/^#/, '');
-    if (hash) {
-        defaultPane.classList.remove("active");
-        for (const ip of hash.split(",")) {
-            tab = createBoxTab(ip)
-            tab.show()
+    function uploadNmap(e) {
+        formid = "box-upload-form";
+        url = "/boxes/upload";
+
+        const form = document.forms[formid]
+
+        data = new FormData()
+        for (const file of form.files.files) {
+            data.append("files", file)
         }
+
+        success_function = function (response){
+            window.location.reload()
+        }
+
+        postAjax(e, formid, data, url, success_function)
     }
 
-    // sse and ajax
+    function filterBoxes(event) {
+        const filterInput = document.getElementById("filter-ports");
+        let ports = filterInput.value.split(",").map(port => port.trim()).filter(port => port !== "");
 
-    const evtSource = new EventSource("/sse");
-    evtSource.onmessage = (event) => {
-        data = JSON.parse(event.data)
-        if (data.includes("dirty")) {
-            createToast("Refresh the window for newer data", "bg-primary")
-        }
-        if (data.includes("boxes")) {
-            fetch("/api/boxes")
-            .then(response => response.json())
-            .then(response => {
-                if (response.status == false) {
-                    createToast(response.message, "bg-danger")
-                } else {
-                    for (const id of response.boxIds) {
-                        document.querySelectorAll('[data-ajax="usershells"]').forEach((element) => {
-                            if (element.getAttribute("data-boxId") == id) {
-                                element.textContent = response.boxes[id].Usershells
-                            }
-                        })
-                        document.querySelectorAll('[data-ajax="rootshells"]').forEach((element) => {
-                            if (element.getAttribute("data-boxId") == id) {
-                                element.textContent = response.boxes[id].Rootshells
-                            }
-                        })
-                        document.querySelectorAll('[data-ajax="claim"]').forEach((element) => {
-                            if (element.getAttribute("data-boxId") == id) {
-                                if (response.boxes[id].ClaimerID == 0) {
-                                    element.textContent = "Unclaimed"
-                                } else {
-                                    element.textContent = response.users[response.boxes[id].ClaimerID].Name
-                                }
-                            }
-                        })
-                        document.querySelectorAll('[data-ajax="note"]').forEach((element) => {
-                            if (element.getAttribute("data-boxId") == id) {
-                                element.textContent = response.boxes[id].Note
-                            }
-                        })
-                    }
-                }
-            })
-            .catch(error => {
-                createToast(error, "bg-danger")
-            })
-        }
-        if (data.includes("ports")){
-            console.log("ports")
-        }
-    };
+        boxes.forEach((box) => {
+            let boxports = box.getAttribute("data-ports").split(",");
+            const match = ports.some(port => boxports.includes(port));
+            box.style.display = match || ports.length === 0 ? "block" : "none";
+        });
+    }
 
-    function editBoxNote(e, id, ip) {
-        formid = "box-note-edit-form-"+ip;
+    function editBoxNote(e, id) {
+        console.log(id)
+        formid = "box-note-edit-form-"+id+"b";
         url = "/boxes/edit/note/"+id;
 
         const form = document.forms[formid]
@@ -561,10 +685,7 @@
         }
 
         success_function = function (response){
-            const modal = bootstrap.Modal.getInstance(document.getElementById('box-note-edit-'+ip))
-
-            createToast(response.message, "bg-success")
-            modal.hide()
+            window.location.reload()
         }
 
         postAjax(e, formid, data, url, success_function)
@@ -582,55 +703,10 @@
         }
 
         success_function = function (response){
-            const modal = bootstrap.Modal.getInstance(document.getElementById('box-details-edit-'+ip))
-
-            createToast(response.message, "bg-success")
-            modal.hide()
+            window.location.reload()
         }
 
         postAjax(e, formid, data, url, success_function)
-    }
-
-    function uploadNmap(e) {
-        formid = "box-upload-form";
-        url = "/boxes/upload";
-
-        const form = document.forms[formid]
-
-        data = new FormData()
-        for (const file of form.files.files) {
-            data.append("files", file)
-        }
-
-        success_function = function (response){
-            const modal = bootstrap.Modal.getInstance(document.getElementById('uploadNmapModal'))
-
-            createToast(response.message, "bg-success")
-            modal.hide()
-        }
-
-        postAjax(e, formid, data, url, success_function)
-    }
-
-
-    function filterBoxes(e) {
-        e.preventDefault();
-        formid = "box-filter-form"
-        const form = document.forms[formid]
-
-        if (form["filter-ports"] != undefined || form["filter-ports"] != "") {
-            let ports = form["filter-ports"].value.split(",")
-            boxes.forEach((box) => {
-                let boxports = box.getAttribute("data-ports").split(",")
-                ports.forEach((port) => {
-                    if (boxports.includes(port)) {
-                        box.style.display = "block"
-                    } else {
-                        box.style.display = "none"
-                    }
-                })
-            })
-        }
     }
 </script>
 

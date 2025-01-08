@@ -112,3 +112,41 @@ body {
 .bottom-btn:hover {
     font-size: 1.2rem;
 }
+
+.distributed {
+    display: flex;
+    justify-content: space-between; /* This will spread the spans across the button */
+    align-items: center; /* Align items vertically in the center */
+    text-align: left; /* Ensure text alignment starts from the left */
+}
+
+.distributed span {
+    flex: 1; /* Make each span take up equal space */
+    text-align: left; /* Ensure text within each span is aligned to the left */
+    padding: 0 10px; /* Optional: Add padding for spacing */
+}
+
+.custom-line {
+    border: none; /* Remove the default border */
+    height: 1px; /* Set the thickness */
+    background-color: white; /* Set the color */
+    margin: 10px 0; /* Add spacing around the line */
+}
+
+.bolded {
+    font-weight: bold;
+}
+
+.ports {
+    color: #353A40;
+    width: 100%;
+    margin-bottom: 20px
+}
+
+.port-button {
+    background-color: #353A40 !important;
+}
+
+.host-info {
+    margin-bottom: 0;
+}
