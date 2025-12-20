@@ -1,3 +1,6 @@
 [submodule "SUGMANATS"]
 	path = SUGMANATS
 	url = https://github.com/dbaseqp/SUGMANATS
+[submodule "Web_Weasel"]
+	path = Web_Weasel
+	url = https://github.com/tiredperson47/Web_Weasel
