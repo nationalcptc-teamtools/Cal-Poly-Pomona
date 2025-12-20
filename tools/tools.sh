@@ -14,6 +14,10 @@ sudo apt install -y ldap-utils gobuster remmina rlwrap krb5-user libkrb5-dev
 
 # install bopscrk (wordlist generator)
 # pipx install bopscrk
+# Install netexec with pipx (better than apt)
+sudo apt install pipx git
+pipx ensurepath
+pipx install git+https://github.com/Pennyw0rth/NetExec
 
 # unzip rockyou.txt
 sudo gunzip /usr/share/wordlists/rockyou.txt.gz
@@ -58,7 +62,7 @@ git clone https://github.com/int0x33/nc.exe.git
 git clone https://github.com/r3motecontrol/Ghostpack-CompiledBinaries.git
 wget https://github.com/antonioCoco/RunasCs/releases/download/v1.5/RunasCs.zip
 
-# add mimikatz (stable)
+# add mimikatz (stable?)
 mkdir mimikatz
 cd mimikatz
 wget https://github.com/gentilkiwi/mimikatz/releases/download/2.2.0-20220919/mimikatz_trunk.zip
@@ -80,8 +84,8 @@ git clone https://github.com/synacktiv/php_filter_chain_generator.git
 cd ..
 
 # Create rev-eng directory and download files
-mkdir rev-eng
-cd rev-eng
+mkdir rev
+cd rev
 wget https://github.com/icsharpcode/AvaloniaILSpy/releases/download/v7.2-rc/Linux.x64.Release.zip
 # unzip Linux.x64.Release.zip
 # unzip ILSpy-linux-x64-Release.zip
