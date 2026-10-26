@@ -1,0 +1,102 @@
+services:
+  btct:
+    build:
+      context: .
+      args:
+        # Set either to 0 in .env for a smaller image (see the Dockerfile
+        # header). WITH_REPORT_BINS=0 leaves out the server-side PDF/Word
+        # export tools (about 580 MB); WITH_TYPST_CLIENT=0 also leaves out the
+        # Report tab's compiler and fonts (about 55 MB), after which
+        # ENABLE_TYPST=1 has no effect until a rebuild with 1.
+        WITH_REPORT_BINS: "${WITH_REPORT_BINS:-1}"
+        WITH_TYPST_CLIENT: "${WITH_TYPST_CLIENT:-1}"
+    image: btct:latest
+    container_name: btct
+    restart: unless-stopped
+    # tini as PID 1 forwards SIGTERM to Bun, and the server's SIGTERM handler
+    # flushes pending Yjs writes before it exits. stop_grace_period is how long
+    # `docker compose stop` waits for that before it sends SIGKILL.
+    init: true
+    stop_grace_period: 60s
+    # Optional caps for a shared host. The app is sized for a 1 to 2 GB,
+    # 1 to 2 core box; uncomment to hold it to that.
+    # mem_limit: 1g
+    # cpus: 2
+    # Keep the container log bounded over a long engagement.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      # Host:container. Change the left side to whatever port you want
+      # users to hit, e.g. "80:8080" to serve on the standard HTTP port.
+      - "8080:8080"
+    environment:
+      # Required in production. Generate once with:  openssl rand -hex 32
+      AUTH_SECRET: "${AUTH_SECRET:?set AUTH_SECRET in .env or your shell}"
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      STATIC_DIR: "/app/dist"
+      DB_PATH: "/data/data.sqlite"
+      # Persist Yjs rooms (notes/pages/graphs/etc.) to disk via LevelDB so
+      # they survive server restarts and image rebuilds. Lives on the same
+      # named volume as the SQLite users DB.
+      YPERSISTENCE: "/data/yjs"
+      # Where scheduled backups are written (see README "Backups"). The
+      # folder is bind-mounted from the host below so backups survive the
+      # container and can be copied anywhere.
+      BACKUP_DIR: "/backups"
+      # Display only: the host folder above, shown in Admin panel -> Backups
+      # so operators see where the files land. The server never opens it.
+      BACKUP_HOST_DIR_LABEL: "${BACKUP_HOST_DIR:-./backups}"
+      # "1" turns on the Typst report tab. Leave off on a small box.
+      ENABLE_TYPST: "${ENABLE_TYPST:-0}"
+      # Seconds the Word converter may run before it is stopped. 0 or unset
+      # means no limit (a 119-page report needs about four minutes on one
+      # core); an export whose browser disconnects is stopped either way.
+      DOCX_CONVERT_TIMEOUT_S: "${DOCX_CONVERT_TIMEOUT_S:-0}"
+      # How long a clean shutdown may take before the server exits anyway.
+      # Must stay below stop_grace_period above, or docker's SIGKILL wins.
+      SHUTDOWN_TIMEOUT_MS: "30000"
+      # Default accounts, all admins, created on boot only when missing (an
+      # existing account is never changed). ADMIN_USERNAME is the primary
+      # admin (default Roberto); SEED_USERS lists the others ("" seeds none).
+      # A password left empty here is generated, printed once in
+      # `docker compose logs btct` and appended to /data/initial-passwords.txt
+      # (mode 0600, not in backups). A name outside the default list reads
+      # SEED_PASSWORD_<NAME> too, but needs its own line here to reach the
+      # container.
+      ADMIN_USERNAME: "${ADMIN_USERNAME:-Roberto}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-}"
+      SEED_USERS: "${SEED_USERS-Warren,Ryan,Anthony,Jesse,Darren}"
+      SEED_PASSWORD_WARREN: "${SEED_PASSWORD_WARREN:-}"
+      SEED_PASSWORD_RYAN: "${SEED_PASSWORD_RYAN:-}"
+      SEED_PASSWORD_ANTHONY: "${SEED_PASSWORD_ANTHONY:-}"
+      SEED_PASSWORD_JESSE: "${SEED_PASSWORD_JESSE:-}"
+      SEED_PASSWORD_DARREN: "${SEED_PASSWORD_DARREN:-}"
+      # Leave ALLOWED_ORIGIN unset for same-origin deployment (recommended).
+      # Set it only if the API will be accessed from a different origin.
+    volumes:
+      - btct-data:/data
+      # Host folder for backups: BACKUP_HOST_DIR from .env, else ./backups
+      # next to this file. Set it with ./choose-backup-folder.sh (Linux) or
+      # .\Choose-BackupFolder.ps1 (Windows), which open a folder picker, or
+      # by hand as an absolute path (e.g. /srv/btct/backups or
+      # C:/btct/backups, forward slashes). The folder must be writable by
+      # uid 1000. Docker Desktop must have file sharing enabled for that
+      # drive. Run `docker compose up -d` after a change.
+      - ${BACKUP_HOST_DIR:-./backups}:/backups
+    # bash's /dev/tcp instead of a second Bun runtime per probe. Healthy only
+    # on a " 200 " status line. `$$l` is compose's escape for a literal `$l`;
+    # a single `$` would be interpolated to an empty string and the container
+    # would never turn healthy.
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /healthz HTTP/1.0\\r\\n\\r\\n' >&3 && read -t 4 -r l <&3 && [[ $$l == *' 200 '* ]]"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  btct-data:

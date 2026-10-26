@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.95 scan initiated Wed Apr 15 09:12:04 2026 as: nmap -sS -sV -sC -O -T4 -oX acme-internal.xml 10.10.10.0/24 -->
+<nmaprun scanner="nmap" args="nmap -sS -sV -sC -O -T4 -oX acme-internal.xml 10.10.10.0/24" start="1776244324" startstr="Wed Apr 15 09:12:04 2026" version="7.95" xmloutputversion="1.05">
+<scaninfo type="syn" protocol="tcp" numservices="1000" services="1-1000,1433,3268,3389,5985,8080,8443"/>
+<verbose level="0"/>
+<debugging level="0"/>
+
+<host starttime="1776244325" endtime="1776244498"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.1" addrtype="ipv4"/>
+<address addr="00:50:56:8A:1C:04" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="dc-01.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="53"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="domain" product="Simple DNS Plus" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="88"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="kerberos-sec" product="Microsoft Windows Kerberos" extrainfo="server time: 2026-04-15 13:14:02Z" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="135"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="msrpc" product="Microsoft Windows RPC" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="139"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="netbios-ssn" product="Microsoft Windows netbios-ssn" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ldap" product="Microsoft Windows Active Directory LDAP" extrainfo="Domain: ACME.CORP, Site: Default-First-Site-Name" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="microsoft-ds" method="probed" conf="10"/>
+<script id="smb-os-discovery" output="OS: Windows Server 2022 Standard 20348 (Windows Server 2022 Standard 6.3)&#xa;Computer name: DC-01&#xa;NetBIOS computer name: DC-01\x00&#xa;Domain name: acme.corp&#xa;Forest name: acme.corp&#xa;FQDN: DC-01.acme.corp"/>
+<script id="smb2-security-mode" output="3.1.1: Message signing enabled and required"/>
+</port>
+<port protocol="tcp" portid="464"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="kpasswd5" method="table" conf="3"/></port>
+<port protocol="tcp" portid="593"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ncacn_http" product="Microsoft Windows RPC over HTTP" version="1.0" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="636"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ldapssl" tunnel="ssl" method="table" conf="3"/></port>
+<port protocol="tcp" portid="3268"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ldap" product="Microsoft Windows Active Directory LDAP" extrainfo="Domain: ACME.CORP, Site: Default-First-Site-Name" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="5985"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="http" product="Microsoft HTTPAPI httpd" version="2.0" extrainfo="SSDP/UPnP" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2022" accuracy="97" line="70266">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2022" accuracy="97"/>
+</osmatch></os>
+</host>
+
+<host starttime="1776244325" endtime="1776244496"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.2" addrtype="ipv4"/>
+<address addr="00:50:56:8A:1C:11" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="dc-02.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="53"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="domain" product="Simple DNS Plus" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="88"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="kerberos-sec" product="Microsoft Windows Kerberos" extrainfo="server time: 2026-04-15 13:14:05Z" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="135"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="msrpc" product="Microsoft Windows RPC" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ldap" product="Microsoft Windows Active Directory LDAP" extrainfo="Domain: ACME.CORP, Site: Default-First-Site-Name" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="microsoft-ds" method="probed" conf="10"/>
+<script id="smb-os-discovery" output="OS: Windows Server 2022 Standard 20348 (Windows Server 2022 Standard 6.3)&#xa;Computer name: DC-02&#xa;Domain name: acme.corp&#xa;FQDN: DC-02.acme.corp"/>
+</port>
+<port protocol="tcp" portid="636"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ldapssl" tunnel="ssl" method="table" conf="3"/></port>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2022" accuracy="96" line="70266">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2022" accuracy="96"/>
+</osmatch></os>
+</host>
+
+<host starttime="1776244326" endtime="1776244501"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.10" addrtype="ipv4"/>
+<address addr="00:50:56:8A:2D:07" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="web-01.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="http" product="Microsoft IIS httpd" version="10.0" method="probed" conf="10"/>
+<script id="http-title" output="ACME Corporate Intranet"/>
+<script id="http-server-header" output="Microsoft-IIS/10.0"/>
+</port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="https" product="Microsoft IIS httpd" version="10.0" tunnel="ssl" method="probed" conf="10"/>
+<script id="ssl-cert" output="Subject: commonName=web-01.acme.corp&#xa;Issuer: commonName=ACME-CORP-CA&#xa;Not valid before: 2025-11-02T00:00:00&#xa;Not valid after:  2026-11-02T00:00:00"/>
+</port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="microsoft-ds" method="probed" conf="10"/>
+<script id="smb-os-discovery" output="OS: Windows Server 2019 Standard 17763 (Windows Server 2019 Standard 6.3)&#xa;Computer name: WEB-01&#xa;Domain name: acme.corp&#xa;FQDN: WEB-01.acme.corp"/>
+<script id="smb2-security-mode" output="3.1.1: Message signing enabled but not required"/>
+</port>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2019" accuracy="95" line="70141">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2019" accuracy="95"/>
+</osmatch></os>
+</host>
+
+<host starttime="1776244326" endtime="1776244490"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.11" addrtype="ipv4"/>
+<address addr="00:50:56:8A:2D:19" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="web-02.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="22"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="ssh" product="OpenSSH" version="8.9p1 Ubuntu 3ubuntu0.10" extrainfo="Ubuntu Linux; protocol 2.0" ostype="Linux" method="probed" conf="10"/>
+<script id="ssh-hostkey" output="3072 8a:1f:c2:0e:44:9b:71:d3:66:0a:12:5e:97:b8:44:c1 (RSA)&#xa;256 5c:7e:12:0b:39:aa:4d:8f:21:6c:03:9e:88:1a:52:7f (ED25519)"/>
+</port>
+<port protocol="tcp" portid="8080"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="http" product="Apache Tomcat" version="9.0.45" method="probed" conf="10"/>
+<script id="http-title" output="ACME Inventory Application"/>
+</port>
+<port protocol="tcp" portid="8443"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="https-alt" product="Apache Tomcat" version="9.0.45" tunnel="ssl" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Linux 5.15 - 5.19" accuracy="98" line="66481">
+<osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="5.X" accuracy="98"/>
+</osmatch></os>
+</host>
+
+<host starttime="1776244327" endtime="1776244487"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.20" addrtype="ipv4"/>
+<address addr="00:50:56:8A:3E:22" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="db-01.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="135"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="msrpc" product="Microsoft Windows RPC" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="microsoft-ds" method="probed" conf="10"/>
+<script id="smb-os-discovery" output="OS: Windows Server 2019 Standard 17763&#xa;Computer name: DB-01&#xa;Domain name: acme.corp&#xa;FQDN: DB-01.acme.corp"/>
+</port>
+<port protocol="tcp" portid="1433"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-sql-s" product="Microsoft SQL Server 2019" version="15.00.2000.00" method="probed" conf="10"/>
+<script id="ms-sql-info" output="Version: Microsoft SQL Server 2019 RTM&#xa;Product: Microsoft SQL Server 2019&#xa;Service pack level: RTM&#xa;TCP port: 1433"/>
+<script id="ms-sql-ntlm-info" output="Target_Name: ACME&#xa;NetBIOS_Domain_Name: ACME&#xa;NetBIOS_Computer_Name: DB-01&#xa;DNS_Domain_Name: acme.corp"/>
+</port>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2019" accuracy="94" line="70141">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2019" accuracy="94"/>
+</osmatch></os>
+</host>
+
+<host starttime="1776244327" endtime="1776244485"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.30" addrtype="ipv4"/>
+<address addr="00:50:56:8A:4F:33" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="file-01.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="139"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="netbios-ssn" product="Microsoft Windows netbios-ssn" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="microsoft-ds" product="Windows Server 2016 Standard 14393" extrainfo="workgroup: ACME" method="probed" conf="10"/>
+<script id="smb-os-discovery" output="OS: Windows Server 2016 Standard 14393 (Windows Server 2016 Standard 6.3)&#xa;Computer name: FILE-01&#xa;Domain name: acme.corp&#xa;FQDN: FILE-01.acme.corp"/>
+<script id="smb2-security-mode" output="3.1.1: Message signing enabled but not required"/>
+<script id="smb-vuln-ms17-010" output="VULNERABLE:&#xa;Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)&#xa;  State: VULNERABLE&#xa;  IDs:  CVE:CVE-2017-0143&#xa;  Risk factor: HIGH"/>
+</port>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2016" accuracy="93" line="69921">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2016" accuracy="93"/>
+</osmatch></os>
+</host>
+
+<host starttime="1776244328" endtime="1776244483"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.40" addrtype="ipv4"/>
+<address addr="00:50:56:8A:5A:44" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="mail-01.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="25"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="smtp" product="Microsoft Exchange smtpd" method="probed" conf="10"/>
+<script id="smtp-commands" output="mail-01.acme.corp Hello [10.10.10.99], SIZE 37748736, STARTTLS, X-ANONYMOUSTLS, AUTH NTLM"/>
+</port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="https" product="Microsoft IIS httpd" version="10.0" tunnel="ssl" method="probed" conf="10"/>
+<script id="http-title" output="Outlook Web App"/>
+</port>
+<port protocol="tcp" portid="587"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="smtp" product="Microsoft Exchange smtpd" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="993"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="imaps" product="Microsoft Exchange imapd" tunnel="ssl" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2019" accuracy="92" line="70141">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2019" accuracy="92"/>
+</osmatch></os>
+</host>
+
+<host starttime="1776244328" endtime="1776244480"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.50" addrtype="ipv4"/>
+<address addr="00:50:56:8A:6B:55" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="app-01.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="http" product="Microsoft IIS httpd" version="10.0" method="probed" conf="10"/>
+<script id="http-title" output="ACME Billing Portal"/>
+</port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="https" product="Microsoft IIS httpd" version="10.0" tunnel="ssl" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="5985"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="http" product="Microsoft HTTPAPI httpd" version="2.0" extrainfo="SSDP/UPnP" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2019" accuracy="91" line="70141">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2019" accuracy="91"/>
+</osmatch></os>
+</host>
+
+<host starttime="1776244329" endtime="1776244478"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="10.10.10.100" addrtype="ipv4"/>
+<address addr="00:50:56:8A:7C:66" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="jump-01.acme.corp" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/>
+<script id="rdp-ntlm-info" output="Target_Name: ACME&#xa;NetBIOS_Computer_Name: JUMP-01&#xa;DNS_Domain_Name: acme.corp&#xa;Product_Version: 10.0.22631"/>
+</port>
+<port protocol="tcp" portid="5985"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="http" product="Microsoft HTTPAPI httpd" version="2.0" extrainfo="SSDP/UPnP" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows 11 21H2" accuracy="90" line="71042">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="11" accuracy="90"/>
+</osmatch></os>
+</host>
+
+<host><status state="down" reason="no-response" reason_ttl="0"/>
+<address addr="10.10.10.77" addrtype="ipv4"/>
+</host>
+
+<runstats><finished time="1776244502" timestr="Wed Apr 15 09:15:02 2026" summary="Nmap done at Wed Apr 15 09:15:02 2026; 256 IP addresses (9 hosts up) scanned in 178.12 seconds" elapsed="178.12" exit="success"/><hosts up="9" down="247" total="256"/>
+</runstats>
+</nmaprun>

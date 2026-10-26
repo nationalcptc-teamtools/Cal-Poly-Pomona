@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/share/nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.95 scan initiated Mon Mar 09 09:04:11 2026 as: nmap -sS -sV -sC -O -T4 -oX fake-company.xml 172.16.40.0/24 -->
+<nmaprun scanner="nmap" args="nmap -sS -sV -sC -O -T4 -oX fake-company.xml 172.16.40.0/24" start="1773046051" startstr="Mon Mar  9 09:04:11 2026" version="7.95" xmloutputversion="1.05">
+<scaninfo type="syn" protocol="tcp" numservices="1000" services="1-1000,1433,3389,5985,8080"/>
+<verbose level="0"/>
+<debugging level="0"/>
+
+<host starttime="1773046052" endtime="1773046191"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.16.40.10" addrtype="ipv4"/>
+<address addr="00:0C:29:3B:7A:11" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="fc-dc01.fakecompany.local" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="53"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="domain" product="Simple DNS Plus" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="88"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="kerberos-sec" product="Microsoft Windows Kerberos" extrainfo="server time: 2026-03-09 16:05:02Z" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="135"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="msrpc" product="Microsoft Windows RPC" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ldap" product="Microsoft Windows Active Directory LDAP" extrainfo="Domain: FAKECOMPANY.LOCAL, Site: Default-First-Site-Name" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="microsoft-ds" method="probed" conf="10"/>
+<script id="smb-os-discovery" output="OS: Windows Server 2022 Standard 20348&#xa;Computer name: FC-DC01&#xa;Domain name: fakecompany.local&#xa;Forest name: fakecompany.local&#xa;FQDN: FC-DC01.fakecompany.local"/>
+<script id="smb2-security-mode" output="3.1.1: Message signing enabled and required"/>
+</port>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2022" accuracy="97" line="70266">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2022" accuracy="97"/>
+</osmatch></os>
+</host>
+
+<host starttime="1773046052" endtime="1773046188"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.16.40.20" addrtype="ipv4"/>
+<address addr="00:0C:29:3B:7A:22" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="fc-web01.fakecompany.local" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="22"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="ssh" product="OpenSSH" version="9.6p1 Ubuntu 3ubuntu13.5" extrainfo="Ubuntu Linux; protocol 2.0" ostype="Linux" method="probed" conf="10"/>
+<script id="ssh-hostkey" output="256 4b:9d:1a:07:33:c5:88:e2:0f:64:aa:19:2c:7d:31:60 (ECDSA)&#xa;256 91:2e:0b:7c:44:d1:38:6a:05:c9:7f:e3:11:8b:4a:d0 (ED25519)"/>
+</port>
+<port protocol="tcp" portid="80"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="http" product="nginx" version="1.24.0" method="probed" conf="10"/>
+<script id="http-title" output="Fake Company Shipment Portal"/>
+<script id="http-server-header" output="nginx/1.24.0 (Ubuntu)"/>
+</port>
+<port protocol="tcp" portid="443"><state state="open" reason="syn-ack" reason_ttl="64"/><service name="https" product="nginx" version="1.24.0" tunnel="ssl" method="probed" conf="10"/>
+<script id="ssl-cert" output="Subject: commonName=fc-web01.fakecompany.local&#xa;Issuer: commonName=FAKECOMPANY-CA&#xa;Not valid before: 2025-09-14T00:00:00&#xa;Not valid after:  2026-09-14T00:00:00"/>
+</port>
+</ports>
+<os><osmatch name="Linux 6.8" accuracy="98" line="66900">
+<osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="6.X" accuracy="98"/>
+</osmatch></os>
+</host>
+
+<host starttime="1773046053" endtime="1773046185"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.16.40.30" addrtype="ipv4"/>
+<address addr="00:0C:29:3B:7A:33" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="fc-file01.fakecompany.local" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="139"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="netbios-ssn" product="Microsoft Windows netbios-ssn" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="microsoft-ds" product="Windows Server 2019 Standard 17763" extrainfo="workgroup: FAKECOMPANY" method="probed" conf="10"/>
+<script id="smb-os-discovery" output="OS: Windows Server 2019 Standard 17763&#xa;Computer name: FC-FILE01&#xa;Domain name: fakecompany.local&#xa;FQDN: FC-FILE01.fakecompany.local"/>
+<script id="smb2-security-mode" output="3.1.1: Message signing enabled but NOT required"/>
+<script id="smb-enum-shares" output="\\172.16.40.30\Finance: READ&#xa;\\172.16.40.30\HR-Archive: READ&#xa;\\172.16.40.30\IT-Scripts: READ/WRITE"/>
+</port>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2019" accuracy="95" line="70141">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2019" accuracy="95"/>
+</osmatch></os>
+</host>
+
+<host starttime="1773046053" endtime="1773046183"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.16.40.40" addrtype="ipv4"/>
+<address addr="00:0C:29:3B:7A:44" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="fc-sql01.fakecompany.local" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="135"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="msrpc" product="Microsoft Windows RPC" method="probed" conf="10"/></port>
+<port protocol="tcp" portid="445"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="microsoft-ds" method="probed" conf="10"/>
+<script id="smb-os-discovery" output="OS: Windows Server 2019 Standard 17763&#xa;Computer name: FC-SQL01&#xa;Domain name: fakecompany.local&#xa;FQDN: FC-SQL01.fakecompany.local"/>
+</port>
+<port protocol="tcp" portid="1433"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-sql-s" product="Microsoft SQL Server 2019" version="15.00.2000.00" method="probed" conf="10"/>
+<script id="ms-sql-info" output="Version: Microsoft SQL Server 2019 RTM&#xa;Product: Microsoft SQL Server 2019&#xa;Service pack level: RTM&#xa;TCP port: 1433"/>
+<script id="ms-sql-ntlm-info" output="Target_Name: FAKECOMPANY&#xa;NetBIOS_Domain_Name: FAKECOMPANY&#xa;NetBIOS_Computer_Name: FC-SQL01&#xa;DNS_Domain_Name: fakecompany.local"/>
+</port>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows Server 2019" accuracy="94" line="70141">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2019" accuracy="94"/>
+</osmatch></os>
+</host>
+
+<host starttime="1773046054" endtime="1773046180"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="172.16.40.99" addrtype="ipv4"/>
+<address addr="00:0C:29:3B:7A:99" addrtype="mac" vendor="VMware"/>
+<hostnames>
+<hostname name="fc-jump01.fakecompany.local" type="PTR"/>
+</hostnames>
+<ports>
+<port protocol="tcp" portid="3389"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10"/>
+<script id="rdp-ntlm-info" output="Target_Name: FAKECOMPANY&#xa;NetBIOS_Computer_Name: FC-JUMP01&#xa;DNS_Domain_Name: fakecompany.local&#xa;Product_Version: 10.0.22631"/>
+</port>
+<port protocol="tcp" portid="5985"><state state="open" reason="syn-ack" reason_ttl="128"/><service name="http" product="Microsoft HTTPAPI httpd" version="2.0" extrainfo="SSDP/UPnP" method="probed" conf="10"/></port>
+</ports>
+<os><osmatch name="Microsoft Windows 11 23H2" accuracy="92" line="71042">
+<osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="11" accuracy="92"/>
+</osmatch></os>
+</host>
+
+<host><status state="down" reason="no-response" reason_ttl="0"/>
+<address addr="172.16.40.55" addrtype="ipv4"/>
+</host>
+
+<runstats><finished time="1773046192" timestr="Mon Mar  9 09:09:52 2026" summary="Nmap done at Mon Mar  9 09:09:52 2026; 256 IP addresses (5 hosts up) scanned in 141.03 seconds" elapsed="141.03" exit="success"/><hosts up="5" down="251" total="256"/>
+</runstats>
+</nmaprun>

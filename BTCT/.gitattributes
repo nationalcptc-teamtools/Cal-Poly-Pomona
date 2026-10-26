@@ -1,0 +1,3 @@
+*.sh text eol=lf
+/docs/brain export-ignore
+/.claude/agents export-ignore

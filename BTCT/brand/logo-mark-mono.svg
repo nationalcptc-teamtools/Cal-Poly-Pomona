@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="BTCT">
+  <!-- BTCT mark, one colour, no tile. Inherits currentColor. -->
+  <path fill="currentColor" d="M3 26 13 12.4 28.6 26H23.88L13.5 16.95 6.85 26Z"/>
+  <path fill="currentColor" d="M12 4H14L22.4 6.8 14 10V13.2H12Z"/>
+</svg>

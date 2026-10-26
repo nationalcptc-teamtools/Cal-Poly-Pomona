@@ -1,0 +1,1 @@
+charged-ieee 0.1.4, vendored from Typst Universe under MIT-0. Two columns, maths, footnotes, references. The template asks for TeX Gyre Termes, which the export does not ship, so typst falls back to the default serif; that is what a user without the font gets too.
