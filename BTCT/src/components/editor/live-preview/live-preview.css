@@ -1,0 +1,172 @@
+/* ──────────────────────────────────────────────────────────────────────
+   Live preview (Obsidian) editor style.
+
+   `html[data-editor-style="live"]` is set by applyEditorStyle and turns off
+   the Notion chrome that lives outside the ProseMirror DOM; `.lp-live` is
+   set on the ProseMirror root by the live-preview plugin. Colours come only
+   from the theme's CSS variables.
+   ────────────────────────────────────────────────────────────────────── */
+
+/* No block drag handle / plus button: one continuous document. */
+html[data-editor-style="live"] .milkdown-host .milkdown-block-handle {
+  display: none !important;
+}
+
+/* Paragraphs flow like lines of a text file: a small gap, not a block gap. */
+.milkdown-host .ProseMirror.lp-live > p + p {
+  margin-top: 0.2em;
+}
+
+/* Revealed markdown syntax: dimmed, never selectable, never part of the text. */
+.milkdown-host .ProseMirror .lp-marker {
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+  font-style: normal;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+  pointer-events: none;
+  white-space: pre;
+}
+/* Heading and quote prefixes keep the line's own size and weight. */
+.milkdown-host .ProseMirror .lp-marker-block {
+  font-weight: inherit;
+}
+.milkdown-host .ProseMirror .lp-marker-inline[data-lp-mark="inlineCode"] {
+  font-family: var(--font-code);
+  font-size: 0.9em;
+}
+/* A link's `](url)` can be long: let it wrap instead of widening the line. */
+.milkdown-host .ProseMirror .lp-marker-inline[data-lp-mark="link"] {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* List markers. The rendered bullet or checkbox stays until the caret
+   stands in front of the item's marker (a click on the bullet, ArrowLeft or
+   Home at the start of the item) or a selection runs across it; then the
+   raw `-` / `- [ ]` / `- [x]` takes the bullet's own spot in the label
+   column, so the text never moves. A number is text in both states. */
+.milkdown-host .ProseMirror.lp-live .lp-li-raw > .list-item > .label-wrapper .label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  white-space: pre;
+}
+.milkdown-host .ProseMirror.lp-live :is(.lp-li-raw-bullet, .lp-li-raw-todo, .lp-li-raw-done) > .list-item > .label-wrapper .label > svg {
+  display: none;
+}
+.milkdown-host .ProseMirror.lp-live :is(.lp-li-raw-bullet, .lp-li-raw-todo, .lp-li-raw-done) > .list-item > .label-wrapper .label::after {
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-code);
+  font-size: 0.85em;
+  font-weight: 400;
+}
+.milkdown-host .ProseMirror.lp-live .lp-li-raw-bullet > .list-item > .label-wrapper .label::after {
+  content: "-";
+}
+/* A task's marker is wider than the box: it ends where the box ended and
+   runs out to the left, into the indent. */
+.milkdown-host .ProseMirror.lp-live :is(.lp-li-raw-todo, .lp-li-raw-done) > .list-item > .label-wrapper .label {
+  justify-content: flex-end;
+}
+.milkdown-host .ProseMirror.lp-live .lp-li-raw-todo > .list-item > .label-wrapper .label::after {
+  content: "- [ ]";
+}
+.milkdown-host .ProseMirror.lp-live .lp-li-raw-done > .list-item > .label-wrapper .label::after {
+  content: "- [x]";
+}
+/* The caret in front of a list marker: ProseMirror's own caret sits at the
+   start of the item's text, so it is hidden and one is drawn before the
+   marker instead (only while the editor has focus). */
+.milkdown-host .ProseMirror.lp-live.ProseMirror-focused:has(.lp-li-caret) {
+  caret-color: transparent;
+}
+/* Crepe's virtual cursor (prosemirror-virtual-cursor) draws the caret
+   where the DOM selection is, at the start of the text: hide it too. */
+.milkdown-host .ProseMirror.lp-live:has(.lp-li-caret) .prosemirror-virtual-cursor {
+  visibility: hidden;
+}
+.milkdown-host .ProseMirror.lp-live .lp-li-caret > .list-item > .label-wrapper .label {
+  display: flex;
+  align-items: center;
+  overflow: visible;
+  white-space: pre;
+}
+.milkdown-host .ProseMirror.lp-live.ProseMirror-focused .lp-li-caret > .list-item > .label-wrapper .label::before {
+  content: "";
+  display: inline-block;
+  width: 1.5px;
+  height: 1.1em;
+  margin-right: 1px;
+  background: hsl(var(--foreground));
+  animation: lp-caret-blink 1.06s steps(1, end) infinite;
+}
+@keyframes lp-caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .milkdown-host .ProseMirror.lp-live.ProseMirror-focused .lp-li-caret > .list-item > .label-wrapper .label::before {
+    animation: none;
+  }
+}
+
+/* Indentation guides, as Obsidian draws them: a nested list hangs a thin
+   line down from under its parent's bullet. The label column is 24px wide
+   with a 10px gap to the text (Crepe), so the parent's bullet centre is
+   22px left of where the nested list starts. */
+.milkdown-host .ProseMirror.lp-live .milkdown-list-item-block .content-dom > :is(ul, ol) {
+  position: relative;
+}
+.milkdown-host .ProseMirror.lp-live .milkdown-list-item-block .content-dom > :is(ul, ol)::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid hsl(var(--border));
+  pointer-events: none;
+}
+
+/* A selected rule shows `---` in place of its line. */
+.milkdown-host .ProseMirror.lp-live hr.lp-hr-raw {
+  background: transparent;
+  height: 0;
+  margin: 0;
+}
+.milkdown-host .ProseMirror .lp-marker-hr {
+  margin-top: 0.4em;
+}
+/* An image's `![alt](src)`: on its own line above a block image, inline in
+   front of an inline one. Long URLs wrap. */
+.milkdown-host .ProseMirror .lp-marker-image {
+  font-family: var(--font-code);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Code fences, on their own lines above and below the block. */
+.milkdown-host .ProseMirror .lp-marker-fence {
+  display: block;
+  font-family: var(--font-code);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* Code blocks: the filled block with its language label (index.css), no
+   line numbers, and the copy button only on hover. */
+.milkdown-host .ProseMirror.lp-live .milkdown-code-block .cm-gutters {
+  display: none;
+}
+.milkdown-host .ProseMirror.lp-live .milkdown-code-block .copy-button {
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.milkdown-host .ProseMirror.lp-live .milkdown-code-block:hover .copy-button,
+.milkdown-host .ProseMirror.lp-live .milkdown-code-block .copy-button:focus-visible {
+  opacity: 1;
+}

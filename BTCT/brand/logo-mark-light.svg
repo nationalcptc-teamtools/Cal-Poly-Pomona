@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="BTCT">
+  <!-- BTCT mark, paper tile. Same construction as logo-mark.svg; the ridge
+       is 3.3 thick because dark ink on a light ground reads thinner. -->
+  <rect width="32" height="32" rx="7" fill="#f6f5f3"/>
+  <rect x=".375" y=".375" width="31.25" height="31.25" rx="6.625" fill="none" stroke="#dcd9d4" stroke-width=".75"/>
+  <path fill="#da452b" d="M3 26 13 12.4 28.6 26H23.58L13.53 17.24 7.1 26Z"/>
+  <path fill="#da452b" d="M12 4H14L22.4 6.8 14 10V13.2H12Z"/>
+</svg>

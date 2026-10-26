@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" data-ui-theme="operations">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Been There, Conquered That</title>
+    <!-- Light/dark and the light palette before the first paint
+         (src/lib/color-mode.ts and src/lib/light-palette.ts keep the same
+         keys and defaults). <html> starts dark; a device that chose light
+         drops the class here, and a light palette other than Paper sets
+         data-light-palette, so neither the app nor the login flashes. -->
+    <script>
+      try { if (localStorage.getItem('btct.colorMode') === 'light') document.documentElement.classList.remove('dark'); } catch (e) {}
+      try { var lp = localStorage.getItem('btct.lightPalette'); if (lp === 'linen' || lp === 'dimmed' || lp === 'classic') document.documentElement.setAttribute('data-light-palette', lp); } catch (e) {}
+    </script>
+  </head>
+  <body class="bg-background text-foreground">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

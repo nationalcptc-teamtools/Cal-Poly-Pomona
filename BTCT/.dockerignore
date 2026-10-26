@@ -1,0 +1,51 @@
+.git
+.gitignore
+.github
+.vscode
+node_modules
+dist
+build.log
+tsc-out.txt
+server/node_modules
+server/data.sqlite
+server/data.sqlite-*
+server/server.log
+server/server.err
+**/.DS_Store
+**/*.log
+.env
+.env.*
+!.env.example
+# TLS material and loose keys never belong in a build context.
+tls
+*.pem
+.__*
+testxml
+README.md
+
+.claude
+.superpowers
+.preview
+backups
+blog
+
+# Staged by `bun scripts/fonts.ts` during the build, from the CDN, so the
+# image is reproducible from the commit. Letting a developer's local copy
+# ride in means the fetch never runs and a half-written font could ship.
+public/fonts
+
+# The Word converter's test corpus: documents and fonts for scoring, never
+# needed at runtime, and the Dockerfile copies server/typst/ whole.
+server/typst/pdf-to-docx/corpus
+
+# Local scratch: scorecard runs, renders and the owner's reference report.
+# Hundreds of MB, and none of it belongs in a build context.
+.scratch
+
+# The image tarball from save-btct-image.sh: hundreds of MB, never build input.
+btct-image.tar.gz*
+.btct-update
+
+# Docs (architecture notes, audits, the optional brain) are never build input;
+# no Dockerfile stage copies them.
+docs

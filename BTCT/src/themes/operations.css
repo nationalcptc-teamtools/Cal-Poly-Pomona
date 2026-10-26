@@ -1,0 +1,125 @@
+/* Operations: the shell's shape rules (rails, tab bars, login, overview).
+   Colours come only from the tokens in tokens.css (the --op-* names are
+   aliases of those), so the mode and the admin accent reach every rule here.
+   Never reset transforms globally: report SVGs use them for layout. */
+/* Palette, fonts and widths live in tokens.css; this file only shapes. */
+html[data-ui-theme="operations"] body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+}
+html[data-ui-theme="operations"] :is(button, input, select, textarea):not(.font-mono) {
+  font-family: var(--font-ui);
+}
+/* The shell (Typst Studio recipe): flat canvas, every region a floating
+   .pane-card --pane-gap apart, no hairlines between regions. The gap is the
+   resize handle (components/ui/Splitter.tsx). */
+html[data-ui-theme="operations"] [data-ui="shell"] { background: hsl(var(--background)); }
+html[data-ui-theme="operations"] [data-ui="main"] { min-width: 0; }
+html[data-ui-theme="operations"] :is([data-ui="sidebar"], [data-ui="pane"], [data-ui="properties"]) {
+  contain: layout paint;
+}
+html[data-ui-theme="operations"] [data-ui="sidebar"]:not([data-rail]) { min-width: 180px; }
+/* Pane headers are 32px; the tab strip scrolls sideways without a bar. */
+html[data-ui-theme="operations"] [data-ui="tabbar"] [role="tablist"]::-webkit-scrollbar { display: none; }
+/* Sidebar rows (tools, notes, scans): 24px, accent fill on hover. */
+html[data-ui-theme="operations"] [data-op="nav"] { color: hsl(var(--foreground)); }
+html[data-ui-theme="operations"] [data-op="nav"]:hover { background: hsl(var(--accent)); }
+/* The active row: accent fill plus a 2px bar in the accent colour, which
+   follows the admin accent (--primary). */
+html[data-ui-theme="operations"] [data-ui="sidebar"] [data-active="true"] {
+  background: hsl(var(--accent));
+  box-shadow: inset 2px 0 0 hsl(var(--primary));
+}
+/* Text fields show focus by their accent border, not a ring (Typst Studio). */
+html[data-ui-theme="operations"] :is(button, [role="tab"], select, a, input[type="checkbox"], input[type="radio"], input[type="range"], input[type="color"]):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+html[data-ui-theme="operations"] .milkdown-host :is(.milkdown, .ProseMirror) {
+  --crepe-font-default: var(--font-ui);
+  --crepe-font-title: var(--font-ui);
+  font-family: var(--font-ui);
+}
+html[data-ui-theme="operations"] .milkdown-host .ProseMirror pre { line-height: 1.5; }
+.panel-loading {
+  position: fixed;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 20px 32px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  background: hsl(var(--popover));
+  color: hsl(var(--foreground));
+}
+.op-tab-close { opacity: .6; }
+.op-tab-close:hover, .op-tab-close:focus-visible { opacity: 1; }
+.op-brand { display: flex; align-items: center; gap: 10px; }
+.op-brand-mark {
+  display: block; width: 27px; height: 27px; flex: none; font-size: 0; color: transparent;
+  background: hsl(var(--primary));
+  -webkit-mask: url(/logo-mark-mono.svg) center / contain no-repeat;
+  mask: url(/logo-mark-mono.svg) center / contain no-repeat;
+}
+/* Lockup (components/ui/Brand.tsx): mark M, wordmark cap height 0.45M,
+   10 grid units (0.3125M) apart, as in brand/logo-lockup-horizontal.svg. */
+.op-lockup { --mark: 40px; display: inline-flex; align-items: center; gap: calc(var(--mark) * 0.3125); }
+.op-lockup .op-brand-mark { width: var(--mark); height: var(--mark); }
+.op-brand-word {
+  display: block; flex: none; height: calc(var(--mark) * 0.465); aspect-ratio: 67.8 / 24.8;
+  background: hsl(var(--foreground));
+  -webkit-mask: url(/wordmark.svg) center / contain no-repeat;
+  mask: url(/wordmark.svg) center / contain no-repeat;
+}
+.op-brand-name { font-size: 12px; letter-spacing: .15em; font-weight: 600; }
+.op-brand-sub { margin-top: 2px; font-size: 9px; letter-spacing: .12em; color: hsl(var(--muted-foreground)); }
+.op-login { display: grid; grid-template-columns: minmax(300px, 1fr) minmax(320px, 380px); gap: 80px; align-items: center; width: min(1100px, calc(90 * var(--vw))); }
+.op-login-intro h1 { max-width: 550px; margin: 20px 0 16px; font-size: clamp(28px, calc(3.2 * var(--vw)), 44px); line-height: 1.15; font-weight: 400; letter-spacing: -.025em; }
+.op-login-intro p { max-width: 440px; color: hsl(var(--muted-foreground)); font-size: 15px; line-height: 1.7; }
+.op-login-capabilities { display: flex; flex-wrap: wrap; gap: 20px; border-top: 1px solid hsl(var(--border)); padding-top: 24px; margin-top: 36px; color: hsl(var(--muted-foreground)); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.op-overview { width: 100%; height: 100%; overflow: auto; padding: clamp(16px, calc(4 * var(--vw)), 48px); }
+.op-overview-inner { max-width: 1040px; margin: 0 auto; }
+.op-eyebrow { color: hsl(var(--muted-foreground)); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.op-overview h1 { margin: 8px 0 4px; font-size: 26px; font-weight: 500; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.op-overview-subtitle { color: hsl(var(--muted-foreground)); font-size: 13px; line-height: 1.6; margin-bottom: 24px; }
+/* Counters: recessed tiles on the card, numbers in the mono face. */
+.op-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pane-gap); margin-bottom: 28px; }
+.op-metric { padding: 14px 16px; border-radius: var(--pane-radius); background: hsl(var(--background)); }
+.op-metric strong { display: block; font: 500 24px/1.1 var(--font-code); margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+.op-metric span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: hsl(var(--muted-foreground)); }
+.op-overview-columns { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 28px; }
+.op-section-heading { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; border-bottom: 1px solid hsl(var(--border)); padding-bottom: 8px; margin-bottom: 4px; color: hsl(var(--muted-foreground)); }
+.op-recent { display: flex; gap: 8px; align-items: center; width: 100%; height: 32px; text-align: left; padding: 0 8px; border-radius: var(--radius); font-size: 12px; }
+.op-recent svg { color: hsl(var(--muted-foreground)); flex-shrink: 0; }
+.op-recent small { margin-left: auto; color: hsl(var(--muted-foreground)); font: 11px var(--font-code); white-space: nowrap; }
+.op-recent:hover { background: hsl(var(--accent)); }
+.op-recent:hover svg:first-child { color: hsl(var(--primary)); }
+.op-actions { display: grid; gap: 4px; margin-top: 4px; }
+.op-action { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: var(--radius); text-align: left; }
+.op-action svg { color: hsl(var(--muted-foreground)); flex-shrink: 0; }
+.op-action > svg:first-child { color: hsl(var(--primary)); }
+.op-action span { flex: 1; min-width: 0; }
+.op-action strong { display: block; font-size: 12px; font-weight: 500; }
+.op-action small { display: block; margin-top: 2px; color: hsl(var(--muted-foreground)); font-size: 11px; }
+.op-action:hover { background: hsl(var(--accent)); }
+.op-footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid hsl(var(--border)); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; color: hsl(var(--muted-foreground)); font-size: 10px; letter-spacing: .06em; }
+@media (max-width: 850px) {
+  .op-login { display: block; max-width: 380px; }
+  .op-login-intro { display: none; }
+  .op-overview-columns { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .op-metrics { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui-theme="operations"] *,
+  html[data-ui-theme="operations"] *::before,
+  html[data-ui-theme="operations"] *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

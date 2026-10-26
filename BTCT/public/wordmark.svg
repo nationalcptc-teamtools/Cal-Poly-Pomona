@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -0.4 67.8 24.8" width="137" height="50" role="img" aria-label="BTCT">
+  <!-- BTCT wordmark, drawn outlines, cap height 24. Stems 4.0, horizontals 3.5.
+       C overshoots 0.4 above and below; its terminals are cut flat.
+       B: upper bowl narrower than the lower. Spacing set by eye. currentColor. -->
+  <path fill="currentColor" fill-rule="evenodd" d="M0 0H8.4A5.9 5.9 0 0 1 8.4 11.8H9.4A6.1 6.1 0 0 1 9.4 24H0ZM4 3.5H7.1A3.2 3.2 0 0 1 7.1 10.05H4ZM4 13.55H8.1A3.45 3.45 0 0 1 8.1 20.5H4ZM16.9 0H32.9V3.5H26.9V24H22.9V3.5H16.9ZM51.61 5.1A10.6 12.4 0 1 0 51.61 18.9H46.64A6.3 8.7 0 1 1 46.64 5.1ZM51.8 0H67.8V3.5H61.8V24H57.8V3.5H51.8Z"/>
+</svg>

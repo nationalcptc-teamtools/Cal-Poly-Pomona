@@ -1,0 +1,53 @@
+# Isolated local preview. Start with:
+# docker compose --env-file .env.preview -f docker-compose.preview.yml up -d --build
+name: btct-lightweight-preview
+services:
+  btct-preview:
+    build:
+      context: .
+      args:
+        WITH_REPORT_BINS: "${WITH_REPORT_BINS:-1}"
+        WITH_TYPST_CLIENT: "${WITH_TYPST_CLIENT:-1}"
+    image: btct:lightweight-preview
+    container_name: btct-lightweight-preview
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - "127.0.0.1:8081:8080"
+    mem_limit: 1g
+    cpus: 2
+    pids_limit: 256
+    environment:
+      AUTH_SECRET: "${PREVIEW_AUTH_SECRET:?set PREVIEW_AUTH_SECRET in .env.preview}"
+      ADMIN_USERNAME: "preview"
+      ADMIN_PASSWORD: "${PREVIEW_ADMIN_PASSWORD:?set PREVIEW_ADMIN_PASSWORD in .env.preview}"
+      HOST: "0.0.0.0"
+      PORT: "8080"
+      STATIC_DIR: /app/dist
+      DB_PATH: /data/data.sqlite
+      YPERSISTENCE: /data/yjs
+      BACKUP_DIR: /backups
+      # "1" turns on the Typst report tab. Leave off on a small box.
+      ENABLE_TYPST: "${ENABLE_TYPST:-0}"
+      # Below stop_grace_period, so a clean shutdown finishes before SIGKILL.
+      SHUTDOWN_TIMEOUT_MS: "30000"
+    volumes:
+      - preview-data:/data
+      - preview-backups:/backups
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /healthz HTTP/1.0\\r\\n\\r\\n' >&3 && read -t 4 -r l <&3 && [[ $$l == *' 200 '* ]]"]
+      interval: 60s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+volumes:
+  preview-data:
+    name: btct-lightweight-preview-data
+  preview-backups:
+    name: btct-lightweight-preview-backups

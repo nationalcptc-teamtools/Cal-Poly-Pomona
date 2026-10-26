@@ -1,0 +1,806 @@
+/* ──────────────────────────────────────────────────────────────────────
+   The one token source for BTCT. Every colour, radius, font, shadow and
+   layout constant the interface paints with is declared here and nowhere
+   else; `src/index.css` imports this file first and maps the tokens to
+   Tailwind utilities in its `@theme inline` block (bg-card, text-muted-
+   foreground, border-border, ...).
+
+   Values: the "Typst Studio" theme chosen in BTCT Theme Studio
+   (themes/typst-studio-custom.json). Light sits on :root, dark on .dark
+   (the class on <html>, set before first paint by the inline script in
+   index.html from localStorage `btct.colorMode`; default dark).
+
+   Colours are bare HSL triplets so `hsl(var(--primary) / 0.5)` and the
+   Tailwind opacity modifiers (`bg-primary/15`) both work. Code colours are
+   hex because CodeMirror themes read them as plain CSS colours.
+
+   Runtime writers rewrite these same variables on <html> (inline style,
+   so they beat both blocks below):
+   - applyThemeColor (src/lib/theme.ts): --primary, --ring and a
+     contrast-picked --primary-foreground when an admin chose an accent;
+     with no accent chosen it removes them and the theme coral shows.
+   - applyCodeAccent: --code-accent, --code-keyword.
+   - applyHeadingColors: --heading-color, --heading-1..6.
+   - applyNoteWidth: --note-width.  ui-zoom: --ui-zoom.
+   ────────────────────────────────────────────────────────────────────── */
+
+/* Self-hosted UI fonts (SIL OFL 1.1, licences in public/ui-fonts/). The box
+   may be offline, so nothing is fetched from a font CDN. Barlow stands in
+   for Bahnschrift (a Windows system font that cannot be redistributed); a
+   Windows client with Bahnschrift installed still gets it first. */
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: swap; src: url("/ui-fonts/Barlow-400-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 500; font-display: swap; src: url("/ui-fonts/Barlow-500-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: swap; src: url("/ui-fonts/Barlow-600-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 700; font-display: swap; src: url("/ui-fonts/Barlow-700-latin.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: swap; src: url("/ui-fonts/Barlow-400-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 500; font-display: swap; src: url("/ui-fonts/Barlow-500-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: swap; src: url("/ui-fonts/Barlow-600-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 700; font-display: swap; src: url("/ui-fonts/Barlow-700-latin-ext.woff2") format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("/ui-fonts/JetBrainsMono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: italic; font-weight: 400; font-display: swap; src: url("/ui-fonts/JetBrainsMono-Italic.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 700; font-display: swap; src: url("/ui-fonts/JetBrainsMono-Bold.woff2") format("woff2"); }
+
+/* Mode-independent tokens: shape, type, layout. */
+:root {
+  --font-ui: "Bahnschrift", "Barlow", "DIN Alternate", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-code: "JetBrains Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+  --font-size-base: 13px;
+  --note-font-size: 15px;
+
+  --radius-pill: 9999px;
+  --pane-radius: 6px;
+  --dialog-radius: 6px;
+  --pane-gap: 8px;
+  --border-width: 1px;
+  --icon-stroke: 1.75;
+
+  /* Density "compact". */
+  --row-height: 26px;
+  --space-1: 3px;
+  --space-2: 6px;
+  --space-3: 9px;
+  --space-4: 12px;
+
+  --sidebar-width: 280px;
+  --properties-width: 280px;
+  --editor-width: 768px;
+  /* Note content column width. `applyNoteWidth` (src/lib/editor-prefs.ts)
+     overrides this per account; the default preset is --editor-width. */
+  --note-width: var(--editor-width);
+
+  /* Interface zoom (src/lib/ui-zoom.ts) sets `zoom` on <html> and mirrors it
+     here. Chrome scales viewport units by that zoom too, so anything sized
+     against the viewport uses these instead of raw vh/vw. */
+  --ui-zoom: 1;
+  --vh: calc(1vh / var(--ui-zoom));
+  --vw: calc(1vw / var(--ui-zoom));
+
+  /* Text highlight marks (the editor's highlight dropdown). Content colours,
+     the same in both modes because they sit behind body text. */
+  --hl-yellow: rgb(250 204 21 / 0.45);
+  --hl-green: rgb(74 222 128 / 0.40);
+  --hl-blue: rgb(96 165 250 / 0.45);
+  --hl-pink: rgb(244 114 182 / 0.45);
+  --hl-orange: rgb(251 146 60 / 0.50);
+  --hl-purple: rgb(192 132 252 / 0.45);
+  --hl-red: rgb(248 113 113 / 0.45);
+}
+
+/* Light: "Paper". Warm cream panes on a slightly deeper canvas, warm ink
+   text, no pure white surface anywhere in the chrome (the Report preview's
+   page stays white: it is the printed paper). Chosen in the paper-light
+   study after the earlier white-card light read as glaring: off-white
+   surfaces, small lightness steps between canvas, pane and hover, hue 40
+   to 45 at low saturation so it reads as paper rather than yellow
+   (references: Flexoki, Solarized Light, Notion, the Claude interface).
+   Other light palettes (Linen, Dimmed, Classic) are below, chosen per
+   device. */
+:root {
+  --background: 42 28% 90.8%;
+  --foreground: 37 10% 15.3%;
+  --card: 43 37% 96.3%;
+  --card-foreground: 37 10% 15.3%;
+  --popover: 40 50% 97.6%;
+  --popover-foreground: 37 10% 15.3%;
+  /* Accent and status colours are the light theme hues with the lightness
+     lowered just far enough that, on these tinted surfaces, text reads
+     4.5:1 on the card, the canvas, the hover fill and its own 10 to 15%
+     tint (the accent on its 10% tint, the one it is drawn on), green also
+     on its tint over the hover fill. White on the accent is 6.3:1. */
+  --primary: 9 70% 40.5%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 40 30% 92.2%;
+  --secondary-foreground: 37 10% 15.3%;
+  --muted: 40 30% 92.2%;
+  --muted-foreground: 38 8% 37.6%;
+  --accent: 41 27% 88.2%;
+  --accent-foreground: 37 10% 15.3%;
+  --destructive: 4 60% 40.5%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 39 23% 82.7%;
+  --input: 39 22% 79.8%;
+  --ring: 9 70% 40.5%;
+  --selection: 17 62% 84.5%;
+  /* The writing surface (note editor, report source editor): a step below
+     the pane and above the canvas, so the editor reads as recessed paper
+     without going muddy. */
+  --editor-bg: 42 33% 94.1%;
+
+  --status-green: 129 40% 28%;
+  --status-blue: 213 64% 38.5%;
+  --status-purple: 259 52% 50%;
+  --status-amber: 38 84% 26.5%;
+  --status-red: 4 60% 40.5%;
+
+  /* Modal scrim (bg-overlay) and the dark chip drawn over images
+     (bg-media / text-media-foreground). The chip stays dark in both modes
+     because it sits on picture content, not on a surface. */
+  --overlay: 0 0% 0%;
+  --overlay-alpha: 0.35;
+  --media: 0 0% 0%;
+  --media-foreground: 0 0% 100%;
+
+  /* Warm-tinted, so panes lift off paper instead of greying it. */
+  --pane-shadow: 0 1px 2px hsl(30 25% 25% / 0.060), 0 6px 18px hsl(30 25% 25% / 0.080);
+
+  /* Code blocks are a filled surface a step below the pane. Every code and
+     terminal colour clears 4.5:1 on it, on the editor surface and on the
+     focused line's 3.5% wash (src/test/tokens.test.ts). */
+  --code-bg: 42 30% 91.6%;
+  --code-fg: #2b2823;
+  --code-accent: #b83c2a;
+  --code-keyword: #b83c2a;
+  --code-function: #8a5a00;
+  --code-string: #3b7236;
+  --code-number: #a84c08;
+  --code-type: #1f6f8b;
+  --code-operator: #2b2823;
+  --code-variable: #2b2823;
+  /* Warm grey, like pencil on the page. */
+  --code-comment: #6e6659;
+  --code-builtin: var(--code-fg);
+
+  /* Terminal palettes for shell and PowerShell code blocks (index.css
+     points the block's --code-* at these). GitHub light and VS Code light+
+     hues, darkened where needed to 4.5:1 on the cream code block. */
+  --term-sh-command: #116329;
+  --term-sh-keyword: #c7222e;
+  --term-sh-string: #7d4e00;
+  --term-sh-variable: #0a6c74;
+  --term-sh-number: #0550ae;
+  --term-sh-operator: #7644df;
+  --term-sh-type: #953800;
+  --term-ps-command: #795e26;
+  --term-ps-keyword: #0000ff;
+  --term-ps-variable: #001080;
+  --term-ps-string: #a31515;
+  --term-ps-number: #06764b;
+  --term-ps-operator: #2b2823;
+  --term-ps-type: #1f6e87;
+  --term-ps-comment: #007700;
+
+  color-scheme: light;
+
+  /* Finding severities (the Findings rail): the CPTC report's finding-bar
+     colours, black or white text on them, and the section tints pre-mixed
+     over this palette's card and hover (rows 8% dark / 10% light, header
+     16% / 20%, row hover 13% / 16%). -ink is the colour moved only as far
+     as 4.5:1 on its header needs; -muted is --muted-foreground moved only
+     as far as 4.5:1 on the tinted rows, their hover and the header need.
+     Generated from the BTCT Theme Studio "Tinted section" design; tokens.test
+     pins the contrast. -solid fills a label (badge, pressed severity chip)
+     that carries white bold -fg text: the report colour where white reads at
+     4.5:1 on it, else the same hue and saturation darkened only as far as
+     that needs (Medium #b1600f, Low #8f710b, 4.6:1). */
+  --sev-critical: 256.9 36.3% 48%;
+  --sev-critical-fg: 0 0% 100%;
+  --sev-critical-solid: 256.9 36.3% 48%;
+  --sev-critical-ink: 256.9 36.3% 48%;
+  --sev-critical-muted: 36 8.9% 33.1%;
+  --sev-critical-head: 270 20% 86.3%;
+  --sev-critical-row: 288 11.1% 91.2%;
+  --sev-critical-hover: 322.5 8.5% 81.6%;
+  --sev-high: 1.6 47.7% 52.7%;
+  --sev-high-fg: 0 0% 100%;
+  --sev-high-solid: 1.6 47.7% 52.7%;
+  --sev-high-ink: 1.7 48% 43.7%;
+  --sev-high-muted: 38.6 8% 34.1%;
+  --sev-high-head: 10.3 46% 87.6%;
+  --sev-high-row: 14.1 41.5% 92%;
+  --sev-high-hover: 17.4 34.8% 82.5%;
+  --sev-medium: 30.2 84.1% 60.6%;
+  --sev-medium-fg: 0 0% 100%;
+  --sev-medium-solid: 30.2 84.1% 37.6%;
+  --sev-medium-ink: 30 83.7% 33.7%;
+  --sev-medium-muted: 36 8% 36.7%;
+  --sev-medium-head: 32.3 70.9% 89.2%;
+  --sev-medium-row: 33.9 62.2% 92.7%;
+  --sev-medium-hover: 33.7 49.4% 83.7%;
+  --sev-low: 46.5 86.1% 71.8%;
+  --sev-low-fg: 0 0% 100%;
+  --sev-low-solid: 46.5 86.1% 30.2%;
+  --sev-low-ink: 46.5 86.1% 28.2%;
+  --sev-low-muted: 37.5 8.3% 37.6%;
+  --sev-low-head: 46 68.2% 91.4%;
+  --sev-low-row: 44.2 61.3% 93.9%;
+  --sev-low-hover: 43.6 45.2% 85.7%;
+}
+
+/* Light palettes, per device. `data-light-palette` on <html> (set before
+   first paint by the inline script in index.html from localStorage
+   `btct.lightPalette`, and by src/lib/light-palette.ts from Profile >
+   Appearance) swaps the light colours; no attribute means Paper above.
+   `:not(.dark)` keeps dark mode untouched whatever is stored. Each block
+   declares the same colour tokens as the light block, and
+   src/test/tokens.test.ts holds every one to the same contrast rules. */
+
+/* Linen: neutral warm grey, barely tinted (closer to Notion or Obsidian). */
+:root[data-light-palette="linen"]:not(.dark) {
+  --background: 45 9% 91.4%;
+  --foreground: 40 7% 17.6%;
+  --card: 40 14% 95.9%;
+  --card-foreground: 40 7% 17.6%;
+  --popover: 40 20% 97.1%;
+  --popover-foreground: 40 7% 17.6%;
+  --primary: 9 70% 40%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 45 11% 92.9%;
+  --secondary-foreground: 40 7% 17.6%;
+  --muted: 45 11% 92.9%;
+  --muted-foreground: 40 5% 37.5%;
+  --accent: 40 11% 89%;
+  --accent-foreground: 40 7% 17.6%;
+  --destructive: 4 60% 40.5%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 38 10% 83.9%;
+  --input: 40 9% 81%;
+  --ring: 9 70% 40%;
+  --selection: 16 50% 85.1%;
+  --editor-bg: 45 14% 94.5%;
+  --status-green: 129 40% 28%;
+  --status-blue: 213 64% 38.5%;
+  --status-purple: 259 52% 50%;
+  --status-amber: 38 84% 26.5%;
+  --status-red: 4 60% 40.5%;
+  --pane-shadow: 0 1px 2px hsl(30 10% 20% / 0.060), 0 6px 18px hsl(30 10% 20% / 0.080);
+  --code-bg: 45 11% 92.5%;
+  --code-fg: #302e2a;
+  --code-accent: #b83c2a;
+  --code-keyword: #b83c2a;
+  --code-function: #8a5a00;
+  --code-string: #3c7437;
+  --code-number: #a84c08;
+  --code-type: #1f6f8b;
+  --code-operator: #302e2a;
+  --code-variable: #302e2a;
+  --code-comment: #6b6760;
+  --term-sh-command: #116329;
+  --term-sh-keyword: #c7222e;
+  --term-sh-string: #7d4e00;
+  --term-sh-variable: #0a6c74;
+  --term-sh-number: #0550ae;
+  --term-sh-operator: #7846df;
+  --term-sh-type: #953800;
+  --term-ps-command: #795e26;
+  --term-ps-keyword: #0000ff;
+  --term-ps-variable: #001080;
+  --term-ps-string: #a31515;
+  --term-ps-number: #06764b;
+  --term-ps-operator: #302e2a;
+  --term-ps-type: #1f7089;
+  --term-ps-comment: #007700;
+
+  /* Finding severities, re-mixed over this palette's surfaces (see :root). */
+  --sev-critical: 256.9 36.3% 48%;
+  --sev-critical-fg: 0 0% 100%;
+  --sev-critical-solid: 256.9 36.3% 48%;
+  --sev-critical-ink: 257 36.4% 47.5%;
+  --sev-critical-muted: 40 5.2% 33.9%;
+  --sev-critical-head: 258.7 22.9% 86.3%;
+  --sev-critical-row: 274.3 14.9% 90.8%;
+  --sev-critical-hover: 272.7 12.1% 82.2%;
+  --sev-high: 1.6 47.7% 52.7%;
+  --sev-high-fg: 0 0% 100%;
+  --sev-high-solid: 1.6 47.7% 52.7%;
+  --sev-high-ink: 1.1 47.5% 43.3%;
+  --sev-high-muted: 37.5 4.5% 34.5%;
+  --sev-high-head: 4.8 38.5% 87.3%;
+  --sev-high-row: 12 34.9% 91.6%;
+  --sev-high-hover: 10 27.9% 83.1%;
+  --sev-medium: 30.2 84.1% 60.6%;
+  --sev-medium-fg: 0 0% 100%;
+  --sev-medium-solid: 30.2 84.1% 37.6%;
+  --sev-medium-ink: 30.4 84.5% 32.9%;
+  --sev-medium-muted: 37.5 4.3% 36.5%;
+  --sev-medium-head: 30.8 64.9% 88.8%;
+  --sev-medium-row: 31.6 48.7% 92.4%;
+  --sev-medium-hover: 31.9 40% 84.3%;
+  --sev-low: 46.5 86.1% 71.8%;
+  --sev-low-fg: 0 0% 100%;
+  --sev-low-solid: 46.5 86.1% 30.2%;
+  --sev-low-ink: 46.2 85.9% 27.8%;
+  --sev-low-muted: 40 4.7% 37.5%;
+  --sev-low-head: 44.4 60% 91.2%;
+  --sev-low-row: 44 45.5% 93.5%;
+  --sev-low-hover: 45 34.3% 86.3%;
+}
+
+/* Dimmed: the whole page a few steps darker, soft stone surfaces, for a
+   bright screen in a dim room. Accents go darker to keep 4.5:1. */
+:root[data-light-palette="dimmed"]:not(.dark) {
+  --background: 42 14% 85.5%;
+  --foreground: 40 9% 13.3%;
+  --card: 42 19% 89.4%;
+  --card-foreground: 40 9% 13.3%;
+  --popover: 45 17% 91%;
+  --popover-foreground: 40 9% 13.3%;
+  --primary: 9 70% 37%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 42 15% 87.1%;
+  --secondary-foreground: 40 9% 13.3%;
+  --muted: 42 15% 87.1%;
+  --muted-foreground: 40 7% 31.8%;
+  --accent: 42 15% 82.9%;
+  --accent-foreground: 40 9% 13.3%;
+  --destructive: 4 60% 36.5%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 40 13% 76.7%;
+  --input: 39 13% 73.9%;
+  --ring: 9 70% 37%;
+  --selection: 17 45% 80.2%;
+  --editor-bg: 44 18% 88%;
+  --status-green: 129 40% 25%;
+  --status-blue: 213 64% 35%;
+  --status-purple: 259 52% 46.5%;
+  --status-amber: 38 84% 24%;
+  --status-red: 4 60% 36.5%;
+  --pane-shadow: 0 1px 2px hsl(30 20% 15% / 0.060), 0 6px 18px hsl(30 20% 15% / 0.080);
+  --code-bg: 40 17% 86.3%;
+  --code-fg: #25231f;
+  --code-accent: #aa3529;
+  --code-keyword: #aa3529;
+  --code-function: #815400;
+  --code-string: #366831;
+  --code-number: #9a4508;
+  --code-type: #1f6581;
+  --code-operator: #25231f;
+  --code-variable: #25231f;
+  --code-comment: #645d52;
+  --term-sh-command: #116329;
+  --term-sh-keyword: #b5222a;
+  --term-sh-string: #7d4e00;
+  --term-sh-variable: #0a6870;
+  --term-sh-number: #0550ae;
+  --term-sh-operator: #6a38df;
+  --term-sh-type: #953800;
+  --term-ps-command: #755a24;
+  --term-ps-keyword: #0000ff;
+  --term-ps-variable: #001080;
+  --term-ps-string: #a31515;
+  --term-ps-number: #066c43;
+  --term-ps-operator: #25231f;
+  --term-ps-type: #1f667f;
+  --term-ps-comment: #006e00;
+
+  /* Finding severities, re-mixed over this palette's surfaces (see :root). */
+  --sev-critical: 256.9 36.3% 48%;
+  --sev-critical-fg: 0 0% 100%;
+  --sev-critical-solid: 256.9 36.3% 48%;
+  --sev-critical-ink: 256.5 36% 43.5%;
+  --sev-critical-muted: 38.2 7% 30.8%;
+  --sev-critical-head: 275 12.2% 80.8%;
+  --sev-critical-row: 336 6.7% 85.3%;
+  --sev-critical-hover: 307.5 6.8% 76.9%;
+  --sev-high: 1.6 47.7% 52.7%;
+  --sev-high-fg: 0 0% 100%;
+  --sev-high-solid: 1.6 47.7% 52.7%;
+  --sev-high-ink: 1.9 47.8% 39.8%;
+  --sev-high-muted: 40 7.5% 31.4%;
+  --sev-high-head: 11.6 34.1% 82.2%;
+  --sev-high-row: 20 28.8% 85.7%;
+  --sev-high-hover: 16.6 26.1% 78.2%;
+  --sev-medium: 30.2 84.1% 60.6%;
+  --sev-medium-fg: 0 0% 100%;
+  --sev-medium-solid: 30.2 84.1% 37.6%;
+  --sev-medium-ink: 30 84.6% 30.6%;
+  --sev-medium-muted: 40 7.4% 31.8%;
+  --sev-medium-head: 32.9 50% 83.5%;
+  --sev-medium-row: 34.6 38.2% 86.7%;
+  --sev-medium-hover: 34.7 35.8% 79.2%;
+  --sev-low: 46.5 86.1% 71.8%;
+  --sev-low-fg: 0 0% 100%;
+  --sev-low-solid: 46.5 86.1% 30.2%;
+  --sev-low-ink: 46.7 86.3% 25.7%;
+  --sev-low-muted: 40 7.4% 31.8%;
+  --sev-low-head: 45 44.4% 85.9%;
+  --sev-low-row: 45.7 33.3% 87.6%;
+  --sev-low-hover: 44 31.3% 81.2%;
+}
+
+/* Classic: the light theme before Paper (white cards on #f6f5f3). */
+:root[data-light-palette="classic"]:not(.dark) {
+  --background: 40 14% 96%;
+  --foreground: 0 0% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 15%;
+  --primary: 9 70% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 40 17% 93%;
+  --secondary-foreground: 0 0% 15%;
+  --muted: 40 17% 93%;
+  --muted-foreground: 45 4% 40%;
+  --accent: 43 14% 90%;
+  --accent-foreground: 0 0% 15%;
+  --destructive: 4 60% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 40 13% 86%;
+  --input: 40 13% 86%;
+  --ring: 9 70% 45%;
+  --selection: 11 60% 83%;
+  --editor-bg: 40 20% 98.5%;
+  --status-green: 129 40% 28%;
+  --status-blue: 213 64% 42%;
+  --status-purple: 259 52% 50%;
+  --status-amber: 38 84% 30%;
+  --status-red: 4 60% 45%;
+  --pane-shadow: 0 1px 2px hsl(0 0% 0% / 0.050), 0 6px 18px hsl(0 0% 0% / 0.065);
+  --code-bg: 0 0% 100%;
+  --code-fg: #262626;
+  --code-accent: #c2412a;
+  --code-keyword: #c2412a;
+  --code-function: #8a5a00;
+  --code-string: #3f7a3a;
+  --code-number: #a84c08;
+  --code-type: #1f6f8b;
+  --code-operator: #262626;
+  --code-variable: #262626;
+  --code-comment: #6e6e6e;
+  --term-sh-command: #116329;
+  --term-sh-keyword: #cf222e;
+  --term-sh-string: #7d4e00;
+  --term-sh-variable: #0a6c74;
+  --term-sh-number: #0550ae;
+  --term-sh-operator: #8250df;
+  --term-sh-type: #953800;
+  --term-ps-command: #795e26;
+  --term-ps-keyword: #0000ff;
+  --term-ps-variable: #001080;
+  --term-ps-string: #a31515;
+  --term-ps-number: #067a4f;
+  --term-ps-operator: #262626;
+  --term-ps-type: #1f7089;
+  --term-ps-comment: #008000;
+
+  /* Finding severities, re-mixed over this palette's surfaces (see :root). */
+  --sev-critical: 256.9 36.3% 48%;
+  --sev-critical-fg: 0 0% 100%;
+  --sev-critical-solid: 256.9 36.3% 48%;
+  --sev-critical-ink: 256.9 36.3% 48%;
+  --sev-critical-muted: 50 3.4% 34.5%;
+  --sev-critical-head: 257.6 32.1% 89.6%;
+  --sev-critical-row: 260 33.3% 94.7%;
+  --sev-critical-hover: 270 11.6% 83.1%;
+  --sev-high: 1.6 47.7% 52.7%;
+  --sev-high-fg: 0 0% 100%;
+  --sev-high-solid: 1.6 47.7% 52.7%;
+  --sev-high-ink: 1.6 47.6% 45.7%;
+  --sev-high-muted: 42.9 3.9% 35.1%;
+  --sev-high-head: 2.6 46.9% 90.4%;
+  --sev-high-row: 5 50% 95.3%;
+  --sev-high-hover: 12.5 29.3% 83.9%;
+  --sev-medium: 30.2 84.1% 60.6%;
+  --sev-medium-fg: 0 0% 100%;
+  --sev-medium-solid: 30.2 84.1% 37.6%;
+  --sev-medium-ink: 30.4 84.1% 34.5%;
+  --sev-medium-muted: 51.4 3.7% 37%;
+  --sev-medium-head: 30 85% 92.2%;
+  --sev-medium-row: 30 80% 96.1%;
+  --sev-medium-hover: 32.7 44% 85.3%;
+  --sev-low: 46.5 86.1% 71.8%;
+  --sev-low-fg: 0 0% 100%;
+  --sev-low-solid: 46.5 86.1% 30.2%;
+  --sev-low-ink: 46.5 86.6% 29.2%;
+  --sev-low-muted: 42.9 3.5% 39%;
+  --sev-low-head: 45.6 86.2% 94.3%;
+  --sev-low-row: 45 85.7% 97.3%;
+  --sev-low-hover: 46.2 39.4% 87.1%;
+}
+
+/* Dark (default). */
+.dark {
+  --background: 0 0% 15%;
+  --foreground: 0 0% 82%;
+  --card: 0 0% 17%;
+  --card-foreground: 0 0% 82%;
+  --popover: 0 0% 19%;
+  --popover-foreground: 0 0% 82%;
+  --primary: 9 100% 66%;
+  --primary-foreground: 0 0% 7%;
+  --secondary: 0 0% 19%;
+  --secondary-foreground: 0 0% 82%;
+  --muted: 0 0% 18%;
+  /* 63% (theme 61%): 4.5:1 on the hover fill (--accent) too, not only on cards. */
+  --muted-foreground: 0 0% 63%;
+  --accent: 0 0% 21%;
+  --accent-foreground: 0 0% 82%;
+  --destructive: 3 92% 73%;
+  --destructive-foreground: 0 0% 7%;
+  --border: 0 0% 23%;
+  --input: 0 0% 19%;
+  --ring: 9 100% 66%;
+  --selection: 10 33% 29%;
+  /* The writing surface sits a step below the card (#2b2b2b) and the canvas
+     (#262626), #212121, so the editor reads as recessed. Foreground on it is
+     10.5:1, muted text 5.9:1; code blocks keep --code-bg (the card) and so
+     still separate from it. */
+  --editor-bg: 0 0% 13%;
+
+  --status-green: 124 32% 64%;
+  /* Blue and purple 72% / 77% (theme 66% / 72%): 4.5:1 as badge text on
+     their own 15% tint. */
+  --status-blue: 210 65% 72%;
+  --status-purple: 259 57% 77%;
+  --status-amber: 39 74% 60%;
+  /* 3 92% 73% (theme #e5484d): red text reaches 4.5:1 on the card, the
+     hover fill and a 10% red banner on a dialog; the fill keeps 7.6:1 with
+     the dark --destructive-foreground. */
+  --status-red: 3 92% 73%;
+
+  --overlay: 0 0% 0%;
+  --overlay-alpha: 0.6;
+  --media: 0 0% 0%;
+  --media-foreground: 0 0% 100%;
+
+  --pane-shadow: 0 1px 2px hsl(0 0% 0% / 0.225), 0 6px 18px hsl(0 0% 0% / 0.225);
+
+  --code-bg: 0 0% 17%;
+  --code-fg: #d1d1d1;
+  --code-accent: #f08a74;
+  --code-keyword: #f08a74;
+  --code-function: #e6c07b;
+  --code-string: #9fbf8f;
+  --code-number: #e5a05b;
+  --code-type: #7fb4c4;
+  --code-operator: #d1d1d1;
+  --code-variable: #d1d1d1;
+  --code-builtin: var(--code-fg);
+  /* #999999 (theme #707070, 2.9:1): 5.0:1 on a code block, 5.6:1 on the
+     editor surface. */
+  --code-comment: #999999;
+
+  /* Terminal palettes, dark: GitHub dark for shell, VS Code dark+ for
+     PowerShell (its keyword blue lifted to #5ea3dc and its comment green to
+     #7fae69, for 4.5:1 on the focused line's wash too). */
+  --term-sh-command: #7ee787;
+  --term-sh-keyword: #ff7b72;
+  --term-sh-string: #e3b341;
+  --term-sh-variable: #56d4dd;
+  --term-sh-number: #79c0ff;
+  --term-sh-operator: #d2a8ff;
+  --term-sh-type: #ffa657;
+  --term-ps-command: #dcdcaa;
+  --term-ps-keyword: #5ea3dc;
+  --term-ps-variable: #9cdcfe;
+  --term-ps-string: #ce9178;
+  --term-ps-number: #b5cea8;
+  --term-ps-operator: #d4d4d4;
+  --term-ps-type: #4ec9b0;
+  --term-ps-comment: #7fae69;
+
+  color-scheme: dark;
+
+  /* Finding severities, re-mixed over this palette's surfaces (see the light :root block). */
+  --sev-critical: 256.9 36.3% 48%;
+  --sev-critical-fg: 0 0% 100%;
+  --sev-critical-solid: 256.9 36.3% 48%;
+  --sev-critical-ink: 256.6 36.3% 68.6%;
+  --sev-critical-muted: 0 0% 64.3%;
+  --sev-critical-head: 257.1 12.5% 22%;
+  --sev-critical-row: 257.1 7.1% 19.4%;
+  --sev-critical-hover: 255 9.5% 24.7%;
+  --sev-high: 1.6 47.7% 52.7%;
+  --sev-high-fg: 0 0% 100%;
+  --sev-high-solid: 1.6 47.7% 52.7%;
+  --sev-high-ink: 1.5 48.1% 68.2%;
+  --sev-high-muted: 0 0% 65.5%;
+  --sev-high-head: 3.2 16.5% 22.5%;
+  --sev-high-row: 0 8.9% 19.8%;
+  --sev-high-hover: 0 11.6% 25.3%;
+  --sev-medium: 30.2 84.1% 60.6%;
+  --sev-medium-fg: 0 0% 100%;
+  --sev-medium-solid: 30.2 84.1% 37.6%;
+  --sev-medium-ink: 30.2 84.1% 60.6%;
+  --sev-medium-muted: 0 0% 69.8%;
+  --sev-medium-head: 31.1 22.3% 23.7%;
+  --sev-medium-row: 30 13.5% 20.4%;
+  --sev-medium-hover: 30 16.4% 26.3%;
+  --sev-low: 46.5 86.1% 71.8%;
+  --sev-low-fg: 0 0% 100%;
+  --sev-low-solid: 46.5 86.1% 30.2%;
+  --sev-low-ink: 46.5 86.1% 71.8%;
+  --sev-low-muted: 0 0% 73.7%;
+  --sev-low-head: 48 15.4% 25.5%;
+  --sev-low-row: 48 9.3% 21.2%;
+  --sev-low-hover: 45 11.3% 27.8%;
+}
+
+/* Legacy names from the Operations skin. Aliases only, so nothing reads a
+   second palette: they follow the mode and the admin accent. New code uses
+   the HSL tokens or the Tailwind utilities instead. */
+:root {
+  --op-canvas: hsl(var(--background));
+  --op-panel: hsl(var(--card));
+  --op-raised: hsl(var(--popover));
+  --op-border: hsl(var(--border));
+  --op-muted: hsl(var(--muted-foreground));
+  --op-text: hsl(var(--foreground));
+  --op-accent: hsl(var(--primary));
+  --op-hover: hsl(var(--accent));
+  --op-font: var(--font-ui);
+}
+
+/* Milkdown Crepe's theme variables, mapped onto the tokens. These replace
+   Crepe's own theme files (frame, frame-dark), which are not imported, so
+   the slash menu, block handle, link tooltip, table handles, code block
+   tools, placeholder and selection all follow the mode and the accent.
+   Declared on <html> next to the tokens they read, and inherited by
+   Crepe's popups wherever they mount. */
+:root {
+  --crepe-color-background: hsl(var(--editor-bg));
+  --crepe-color-on-background: hsl(var(--foreground));
+  --crepe-color-surface: hsl(var(--popover));
+  --crepe-color-surface-low: hsl(var(--secondary));
+  --crepe-color-on-surface: hsl(var(--popover-foreground));
+  --crepe-color-on-surface-variant: hsl(var(--muted-foreground));
+  --crepe-color-outline: hsl(var(--muted-foreground));
+  --crepe-color-primary: hsl(var(--primary));
+  --crepe-color-secondary: hsl(var(--accent));
+  --crepe-color-on-secondary: hsl(var(--accent-foreground));
+  --crepe-color-inverse: hsl(var(--foreground));
+  --crepe-color-on-inverse: hsl(var(--background));
+  --crepe-color-inline-code: hsl(var(--foreground));
+  --crepe-color-error: hsl(var(--status-red));
+  --crepe-color-hover: hsl(var(--accent));
+  --crepe-color-selected: hsl(var(--selection));
+  --crepe-color-inline-area: hsl(var(--muted));
+  --crepe-font-title: var(--font-ui);
+  --crepe-font-default: var(--font-ui);
+  --crepe-font-code: var(--font-code);
+  --crepe-shadow-1: var(--pane-shadow);
+  --crepe-shadow-2: var(--pane-shadow);
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Tailwind 4 mapping. Components use these utilities, never an arbitrary
+   `[hsl(var(--x))]` value:
+     surfaces   bg-background bg-card bg-popover bg-muted bg-accent bg-secondary
+     text       text-foreground text-muted-foreground text-card-foreground
+                text-popover-foreground text-accent-foreground
+     accent     bg-primary text-primary text-primary-foreground ring-ring
+                border-primary outline-ring
+     lines      border-border border-input divide-border
+     status     {bg,text,border}-status-{green,blue,purple,amber,red},
+     severity   bg-sev-{critical,high,medium,low} (report colour: stripes,
+                dots, tints), bg-sev-*-solid with text-sev-*-fg (white,
+                bold) for a filled label; text-sev-*-ink, text-sev-*-muted,
+                bg-sev-*-head, bg-sev-*-row, bg-sev-*-hover (Findings rail)
+                bg-destructive text-destructive-foreground
+     scrims     bg-overlay (modal scrim), bg-media + text-media-foreground
+                (controls drawn on top of an image)
+     code       bg-code-bg text-code-fg text-code-{keyword,string,function,
+                number,type,comment,accent}
+     selection  bg-selection
+     editor     bg-editor (the recessed writing surface: note and report editors)
+   Opacity modifiers work on every colour: bg-primary/15, border-status-red/40.
+   Type scale (font-size / line-height), in px because the chrome is pixel-dense:
+     text-micro 9/12   text-caption 10/14   text-meta 11/16
+     text-xs 12/16     text-ui 13/18        text-sm 14/20 (Tailwind default)
+   Radius: rounded-xs 1, rounded-sm 2, rounded / rounded-md 4 (controls),
+   rounded-lg 6 (dialogs, panes), rounded-xl 8, rounded-2xl 10, rounded-full.
+   Fonts: font-sans (UI, Barlow / Bahnschrift), font-mono (JetBrains Mono).
+   Shadow: shadow-pane (panes, menus, dialogs).
+   ────────────────────────────────────────────────────────────────────── */
+@theme static {
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius: 4px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+
+  --text-micro: 9px;
+  --text-micro--line-height: 12px;
+  --text-caption: 10px;
+  --text-caption--line-height: 14px;
+  --text-meta: 11px;
+  --text-meta--line-height: 16px;
+  --text-ui: 13px;
+  --text-ui--line-height: 18px;
+}
+
+@theme inline {
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+  --shadow-pane: var(--pane-shadow);
+  /* The large Tailwind shadows all mean "floating surface": one token. */
+  --shadow-lg: var(--pane-shadow);
+  --shadow-xl: var(--pane-shadow);
+  --shadow-2xl: var(--pane-shadow);
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-selection: hsl(var(--selection));
+  --color-editor: hsl(var(--editor-bg));
+
+  --color-status-green: hsl(var(--status-green));
+  --color-status-blue: hsl(var(--status-blue));
+  --color-status-purple: hsl(var(--status-purple));
+  --color-status-amber: hsl(var(--status-amber));
+  --color-status-red: hsl(var(--status-red));
+  --color-sev-critical: hsl(var(--sev-critical));
+  --color-sev-critical-fg: hsl(var(--sev-critical-fg));
+  --color-sev-critical-solid: hsl(var(--sev-critical-solid));
+  --color-sev-critical-ink: hsl(var(--sev-critical-ink));
+  --color-sev-critical-muted: hsl(var(--sev-critical-muted));
+  --color-sev-critical-head: hsl(var(--sev-critical-head));
+  --color-sev-critical-row: hsl(var(--sev-critical-row));
+  --color-sev-critical-hover: hsl(var(--sev-critical-hover));
+  --color-sev-high: hsl(var(--sev-high));
+  --color-sev-high-fg: hsl(var(--sev-high-fg));
+  --color-sev-high-solid: hsl(var(--sev-high-solid));
+  --color-sev-high-ink: hsl(var(--sev-high-ink));
+  --color-sev-high-muted: hsl(var(--sev-high-muted));
+  --color-sev-high-head: hsl(var(--sev-high-head));
+  --color-sev-high-row: hsl(var(--sev-high-row));
+  --color-sev-high-hover: hsl(var(--sev-high-hover));
+  --color-sev-medium: hsl(var(--sev-medium));
+  --color-sev-medium-fg: hsl(var(--sev-medium-fg));
+  --color-sev-medium-solid: hsl(var(--sev-medium-solid));
+  --color-sev-medium-ink: hsl(var(--sev-medium-ink));
+  --color-sev-medium-muted: hsl(var(--sev-medium-muted));
+  --color-sev-medium-head: hsl(var(--sev-medium-head));
+  --color-sev-medium-row: hsl(var(--sev-medium-row));
+  --color-sev-medium-hover: hsl(var(--sev-medium-hover));
+  --color-sev-low: hsl(var(--sev-low));
+  --color-sev-low-fg: hsl(var(--sev-low-fg));
+  --color-sev-low-solid: hsl(var(--sev-low-solid));
+  --color-sev-low-ink: hsl(var(--sev-low-ink));
+  --color-sev-low-muted: hsl(var(--sev-low-muted));
+  --color-sev-low-head: hsl(var(--sev-low-head));
+  --color-sev-low-row: hsl(var(--sev-low-row));
+  --color-sev-low-hover: hsl(var(--sev-low-hover));
+
+  --color-overlay: hsl(var(--overlay) / var(--overlay-alpha));
+  --color-media: hsl(var(--media) / 0.6);
+  --color-media-foreground: hsl(var(--media-foreground));
+
+  --color-code-bg: hsl(var(--code-bg));
+  --color-code-fg: var(--code-fg);
+  --color-code-accent: var(--code-accent);
+  --color-code-keyword: var(--code-keyword);
+  --color-code-string: var(--code-string);
+  --color-code-function: var(--code-function);
+  --color-code-number: var(--code-number);
+  --color-code-type: var(--code-type);
+  --color-code-comment: var(--code-comment);
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="BTCT">
+  <!-- BTCT mark, dark tile. 32 unit grid, 1 unit = half a pixel at 16 px.
+       Summit: a caret drawn as a chevron with flat feet on the baseline (y 26).
+       Flag: a text cursor pole (x 12 to 14, pixel aligned at 16 and 32 px)
+       carrying a prompt pennant whose tip is lifted 0.2 above its midline.
+       Ridge is 3.1 thick here (light on dark); the light tile version is 3.3. -->
+  <rect width="32" height="32" rx="7" fill="#262626"/>
+  <rect x=".375" y=".375" width="31.25" height="31.25" rx="6.625" fill="none" stroke="#3a3a3a" stroke-width=".75"/>
+  <path fill="#ff6c52" d="M3 26 13 12.4 28.6 26H23.88L13.5 16.95 6.85 26Z"/>
+  <path fill="#ff6c52" d="M12 4H14L22.4 6.8 14 10V13.2H12Z"/>
+</svg>

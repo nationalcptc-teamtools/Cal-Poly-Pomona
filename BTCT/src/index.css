@@ -1,0 +1,982 @@
+@import "tailwindcss";
+/* The one token source: colours (light on :root, dark on .dark), radius,
+   fonts, type scale, layout constants and the Tailwind @theme mapping. */
+@import "./themes/tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Base defaults live in @layer base so Tailwind utilities (border-primary,
+   rounded-full) override them; an unlayered rule would beat every utility. */
+@layer base {
+  * { border-color: hsl(var(--border)); }
+  button, input, textarea, select { border-radius: var(--radius-sm); }
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+  margin: 0;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  height: calc(100 * var(--vh));
+  width: calc(100 * var(--vw));
+}
+
+/* Full-viewport boxes that stay full-viewport under interface zoom. */
+.h-viewport { height: calc(100 * var(--vh)); }
+.w-viewport { width: calc(100 * var(--vw)); }
+
+/* ──────────────────────────────────────────────────────────────────────
+   General UI polish: snappy interaction transitions, accent text selection,
+   and thin surface-matched scrollbars. Applied app-wide via the shared
+   tokens; no per-component changes.
+   ────────────────────────────────────────────────────────────────────── */
+
+/* Smooth state changes on interactive elements. Only colour/elevation props
+   are transitioned (never layout), so there's no scroll/resize jank. */
+button, a, summary,
+[role="button"], [role="tab"], [role="menuitem"], [role="option"] {
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+/* Text selection picks up the accent. */
+::selection {
+  background-color: hsl(var(--selection));
+}
+
+/* Thin, subtle scrollbars that fade into the surface. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.32) transparent;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.28);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.5);
+}
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Rounded-corner defaults. Tailwind's rounded-* utilities already cover
+   most surfaces, but inputs/buttons without an explicit radius still get
+   a sensible default so nothing renders with square edges by accident.
+   ────────────────────────────────────────────────────────────────────── */
+
+/* (button, input, textarea, select get --radius-sm in the base layer at the top.) */
+
+/* Native disclosure of a hover/focus ring on buttons only. Text inputs
+   communicate focus through the cursor + their own container border
+   styling; a global ring on them adds a coloured halo to every search
+   bar, rename field, and dialog input that looks noisy. */
+button:focus-visible {
+  outline: 1px solid hsl(var(--ring) / 0.7);
+  outline-offset: 1px;
+}
+
+/* Lucide icons take the theme's stroke width (1.75) from one rule rather than
+   a prop on every icon. */
+svg.lucide { stroke-width: var(--icon-stroke); }
+
+/* Floating surfaces (Typst Studio recipe). .pane-card paints the card and
+   clips to the pane radius; .pop-shadow is for menus and dialogs, which use
+   the shadow instead of a border. */
+@layer components {
+  .pane-float { border-radius: var(--pane-radius); box-shadow: var(--pane-shadow); }
+  .pane-card {
+    border-radius: var(--pane-radius);
+    box-shadow: var(--pane-shadow);
+    background-color: hsl(var(--card));
+    overflow: hidden;
+  }
+  .pop-shadow { box-shadow: var(--pane-shadow); }
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Status pill utility: used for "Active / Driving / Resting / Off Duty"
+   chips and any other tagged state. Compose with one of the colour
+   classes below. Shape is fully rounded; backgrounds are tinted from
+   the matching status HSL with low alpha so they read on dark surfaces.
+   ────────────────────────────────────────────────────────────────────── */
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.status-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  flex-shrink: 0;
+}
+.status-pill--green  { color: hsl(var(--status-green));  background: hsl(var(--status-green)  / 0.12); }
+.status-pill--blue   { color: hsl(var(--status-blue));   background: hsl(var(--status-blue)   / 0.14); }
+.status-pill--purple { color: hsl(var(--status-purple)); background: hsl(var(--status-purple) / 0.16); }
+.status-pill--amber  { color: hsl(var(--status-amber));  background: hsl(var(--status-amber)  / 0.14); }
+.status-pill--red    { color: hsl(var(--status-red));    background: hsl(var(--status-red)    / 0.14); }
+.status-pill--muted  { color: hsl(var(--muted-foreground)); background: hsl(var(--muted-foreground) / 0.10); }
+
+/* Thin pill: bare label inside a low-contrast rounded chip (e.g. counts). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  font-weight: 500;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────
+   Milkdown (Crepe) editor: Obsidian-style live-preview markdown.
+
+   Colours come only from the tokens: Crepe's own `--crepe-color-*`
+   variables are mapped onto them in themes/tokens.css (Crepe's frame and
+   frame-dark theme files are not imported). Crepe's structural stylesheet
+   (@milkdown/crepe/theme/common) arrives in the editor's lazy chunk, after
+   this file, so every rule that overrides it starts with
+   `.milkdown-host .milkdown` and outranks Crepe's `.milkdown ...` whatever
+   order the stylesheets land in. HistoryView uses the same wrappers, so the
+   read-only version viewer looks like the editor.
+   ────────────────────────────────────────────────────────────────────── */
+
+/* The note column. Its side padding follows the pane's width (a container
+   query, so a split pane or the History tab counts, not the window): 40px
+   when there is room, down to 12px on a phone, so text uses the width. The
+   title, path and body share it, so they line up. */
+.note-scroll { container-type: inline-size; }
+.note-column { padding-inline: clamp(12px, 6cqi, 40px); }
+
+.milkdown-host { width: 100%; container-type: inline-size; }
+.milkdown-host .milkdown { background: transparent; color: inherit; }
+.milkdown-host .milkdown .ProseMirror {
+  outline: none;
+  /* Crepe pads the document 60px 120px, which left a 100px column on a
+     400px screen. The column's own padding does that job now. */
+  padding: 0.25rem 0 3rem;
+  min-height: 400px;
+  background: transparent;
+  color: inherit;
+  caret-color: hsl(var(--foreground));
+  font-family: var(--font-ui);
+  font-size: var(--note-font-size);
+  line-height: 1.35;
+  /* Note line metrics. Crepe's reset pins a <p> to 16px text on a 24px line
+     with 4px padding top and bottom (the root line-height above never
+     reaches a paragraph), and each Enter starts a new paragraph, so the gap
+     between note lines was 24 + 8 + the 12px block margin = 44px. 1.35 with
+     no padding and a 0.5em block gap makes that about 29.6px, roughly a
+     third tighter, while wrapped lines inside one paragraph close up ~10%. */
+  --note-line: calc(var(--note-font-size) * 1.35);
+}
+/* Blocks (Notion) style: room for Crepe's drag handle and + button left of
+   the text, when the pane has it. */
+html[data-editor-style="blocks"] .milkdown-host .milkdown .ProseMirror {
+  padding-left: clamp(0px, 8cqi - 24px, 36px);
+}
+.milkdown-host .milkdown .ProseMirror p {
+  font-size: var(--note-font-size);
+  line-height: var(--note-line);
+  padding: 0;
+}
+.milkdown-host .milkdown .ProseMirror > * + * { margin-top: 0.5em; }
+.milkdown-host .milkdown .ProseMirror ::selection,
+.milkdown-host .milkdown .ProseMirror *::selection { background: hsl(var(--selection)); }
+
+/* ── Headings ── */
+.milkdown-host .milkdown .ProseMirror :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  line-height: 1.25;
+  padding: 0;
+  margin-top: 1.2em;
+  /* Heading colours are per account (or forced by the admin). Nothing sets
+     these variables by default, so headings inherit the body colour;
+     applyHeadingColors() in src/lib/theme.ts writes --heading-color and the
+     per-level --heading-N onto :root, and a per-level value beats the
+     shared one. A CSS-variable rewrite, so no editor rebuild (invariant #3). */
+  color: var(--heading-color, inherit);
+}
+.milkdown-host .milkdown .ProseMirror > :is(h1, h2, h3, h4, h5, h6):first-child { margin-top: 0; }
+.milkdown-host .milkdown .ProseMirror h1 { font-size: 1.9em; letter-spacing: -0.01em; color: var(--heading-1, var(--heading-color, inherit)); }
+.milkdown-host .milkdown .ProseMirror h2 { font-size: 1.45em; color: var(--heading-2, var(--heading-color, inherit)); }
+.milkdown-host .milkdown .ProseMirror h3 { font-size: 1.2em;  color: var(--heading-3, var(--heading-color, inherit)); }
+.milkdown-host .milkdown .ProseMirror h4 { font-size: 1.05em; color: var(--heading-4, var(--heading-color, inherit)); }
+.milkdown-host .milkdown .ProseMirror h5 { font-size: 1em;    color: var(--heading-5, var(--heading-color, inherit)); }
+.milkdown-host .milkdown .ProseMirror h6 { font-size: 1em;    color: var(--heading-6, var(--heading-color, inherit)); font-weight: 600; }
+
+/* ── Inline marks ── */
+.milkdown-host .milkdown .ProseMirror a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.milkdown-host .milkdown .ProseMirror :not(pre) > code {
+  display: inline;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-code);
+  font-size: 0.88em;
+  line-height: inherit;
+}
+.milkdown-host .milkdown .ProseMirror mark[data-hl-color] {
+  background-color: var(--hl-bg, transparent);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+.milkdown-host .ProseMirror mark[data-hl-color="yellow"] { --hl-bg: var(--hl-yellow); }
+.milkdown-host .ProseMirror mark[data-hl-color="green"]  { --hl-bg: var(--hl-green); }
+.milkdown-host .ProseMirror mark[data-hl-color="blue"]   { --hl-bg: var(--hl-blue); }
+.milkdown-host .ProseMirror mark[data-hl-color="pink"]   { --hl-bg: var(--hl-pink); }
+.milkdown-host .ProseMirror mark[data-hl-color="orange"] { --hl-bg: var(--hl-orange); }
+.milkdown-host .ProseMirror mark[data-hl-color="purple"] { --hl-bg: var(--hl-purple); }
+.milkdown-host .ProseMirror mark[data-hl-color="red"]    { --hl-bg: var(--hl-red); }
+
+/* Floating highlight toolbar: shown above the current text selection. */
+.hl-toolbar {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+  box-shadow: var(--pane-shadow);
+  transform: translateX(-50%);
+  pointer-events: auto;
+  animation: hl-toolbar-in 0.08s ease-out;
+}
+@keyframes hl-toolbar-in {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.hl-toolbar__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  margin-right: 4px;
+}
+.hl-swatch {
+  width: 18px;
+  height: 18px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.08s ease, border-color 0.08s ease;
+}
+.hl-swatch:hover {
+  transform: scale(1.15);
+  border-color: hsl(var(--foreground));
+}
+.hl-swatch--clear {
+  background:
+    linear-gradient(to top left,
+      transparent 0%,
+      transparent calc(50% - 1px),
+      hsl(var(--destructive)) 50%,
+      transparent calc(50% + 1px),
+      transparent 100%),
+    hsl(var(--background));
+}
+
+/* ── Quote and rule ── */
+.milkdown-host .milkdown .ProseMirror blockquote {
+  margin: 0.6em 0;
+  padding: 0.35em 0.9em;
+  box-sizing: border-box;
+  border-left: 3px solid hsl(var(--primary) / 0.7);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--muted-foreground));
+}
+/* Crepe draws its own bar; the border above is the one. */
+.milkdown-host .milkdown .ProseMirror blockquote::before { content: none; }
+.milkdown-host .milkdown .ProseMirror hr {
+  height: 1px;
+  padding: 0;
+  border: 0;
+  background: hsl(var(--border));
+  margin: 1.2em 0;
+}
+.milkdown-host .milkdown .ProseMirror hr.ProseMirror-selectednode { background: hsl(var(--primary)); }
+.milkdown-host .milkdown .ProseMirror hr.ProseMirror-selectednode::before { content: none; }
+
+/* ── Lists ── Crepe's list item view (lib/list-item-view.ts) draws the
+   marker in its own column; the read-only History viewer has plain <li>s
+   and gets markers below. */
+.milkdown-host .milkdown .ProseMirror :is(ul, ol) { padding: 0; }
+/* Crepe sizes the bullet / checkbox column to its old 32px paragraph box.
+   Track the paragraph line instead so the marker stays centred on the first
+   line of text. */
+.milkdown-host .milkdown .milkdown-list-item-block li .label-wrapper,
+.milkdown-host .milkdown .milkdown-list-item-block li .label-wrapper .label {
+  height: var(--note-line);
+  padding: 0;
+}
+.milkdown-host .milkdown .milkdown-list-item-block li .label-wrapper { color: hsl(var(--muted-foreground)); }
+.milkdown-host .milkdown .milkdown-list-item-block li .label-wrapper svg { fill: hsl(var(--muted-foreground)); }
+.milkdown-host .milkdown .milkdown-list-item-block li .label-wrapper .label.ordered {
+  font-variant-numeric: tabular-nums;
+}
+/* A ticked to-do: the box in the accent, the text dimmed. */
+.milkdown-host .milkdown .milkdown-list-item-block li .label-wrapper .label.checked svg { fill: hsl(var(--primary)); }
+.milkdown-host .milkdown .milkdown-list-item-block[data-checked="true"] > li > .children > .content-dom > p {
+  color: hsl(var(--muted-foreground));
+}
+
+/* ── Code blocks ──
+   One filled surface per the theme's `code: filled` layout: --code-bg (the
+   card, a step above the recessed editor surface), a 1px inset ring, and a
+   header strip with the language and the copy button. CodeMirror inside is
+   transparent all the way down (no gutter or active-line band of its own);
+   lib/code-chrome.ts themes its cursor, selection and panels. */
+.milkdown-host .milkdown .milkdown-code-block {
+  margin: 0.6em 0;
+  padding: 0;
+  background-color: hsl(var(--code-bg));
+  color: var(--code-fg);
+  border: 0;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.07);
+}
+.milkdown-host .milkdown .milkdown-code-block .tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 26px;
+  padding: 2px 6px 2px 4px;
+  background: hsl(var(--foreground) / 0.04);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.milkdown-host .milkdown .milkdown-code-block .tools .language-button {
+  margin: 0;
+  padding: 1px 4px 1px 8px;
+  gap: 4px;
+  opacity: 1;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  border-radius: var(--radius);
+}
+.milkdown-host .milkdown .milkdown-code-block .tools .language-button:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+.milkdown-host .milkdown .milkdown-code-block .tools .language-button .expand-icon svg { color: hsl(var(--muted-foreground)); }
+.milkdown-host .milkdown .milkdown-code-block .tools .tools-button-group button {
+  padding: 1px 8px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius);
+}
+.milkdown-host .milkdown .milkdown-code-block .tools .tools-button-group button svg { fill: hsl(var(--muted-foreground)); }
+.milkdown-host .milkdown .milkdown-code-block .tools .tools-button-group button:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+.milkdown-host .milkdown .milkdown-code-block.selected { outline: 1px solid hsl(var(--primary)); }
+.milkdown-host .milkdown .milkdown-code-block .codemirror-host { padding: 0.55rem 0.9rem 0.7rem 0.4rem; }
+.milkdown-host .milkdown .milkdown-code-block .cm-editor {
+  background: transparent;
+  color: var(--code-fg);
+  font-family: var(--font-code);
+  font-size: 12.5px;
+}
+.milkdown-host .milkdown .milkdown-code-block .cm-scroller { font-family: var(--font-code); line-height: 1.55; }
+.milkdown-host .milkdown .milkdown-code-block .cm-gutters {
+  background: transparent;
+  border-right: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+.milkdown-host .milkdown .milkdown-code-block .cm-panel {
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+}
+/* The language picker: a menu, like the app's other menus. */
+.milkdown-host .milkdown .milkdown-code-block .language-picker { padding-top: 4px; }
+.milkdown-host .milkdown .milkdown-code-block .list-wrapper {
+  padding-top: 8px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border-radius: var(--dialog-radius);
+  box-shadow: var(--pane-shadow);
+}
+.milkdown-host .milkdown .milkdown-code-block .search-box {
+  margin: 0 8px 6px;
+  padding: 4px 8px;
+  outline: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+.milkdown-host .milkdown .milkdown-code-block .search-box:has(input:focus) { outline: 1px solid hsl(var(--ring)); }
+.milkdown-host .milkdown .milkdown-code-block .search-box input { font-size: 12px; color: hsl(var(--popover-foreground)); }
+.milkdown-host .milkdown .milkdown-code-block .search-box .clear-icon svg { color: hsl(var(--muted-foreground)); fill: hsl(var(--muted-foreground)); }
+.milkdown-host .milkdown .milkdown-code-block .language-list-item {
+  padding: 3px 14px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+.milkdown-host .milkdown .milkdown-code-block .language-list-item:hover { background: hsl(var(--accent)); }
+/* Keyboard navigation of the language picker (Ctrl+/ then arrow keys).
+   Highlight whichever list item has focus so the selection is visible as
+   the user moves through it. */
+.milkdown-host .milkdown .milkdown-code-block .language-list-item:focus,
+.milkdown-host .milkdown .milkdown-code-block .language-list-item:focus-visible {
+  background: hsl(var(--primary) / 0.18);
+  color: hsl(var(--foreground));
+  outline: none;
+}
+
+/* Syntax-highlight token colours, driven by the `--code-*` tokens (see
+   themes/tokens.css and src/lib/code-theme.ts). The HighlightStyle in
+   code-theme.ts maps lezer tags to these classes instead of literal colours,
+   so changing the account accent recolours every code block live. */
+.milkdown-host .milkdown-code-block .cm-tok-keyword  { color: var(--code-keyword); }
+.milkdown-host .milkdown-code-block .cm-tok-string   { color: var(--code-string); }
+.milkdown-host .milkdown-code-block .cm-tok-number   { color: var(--code-number); }
+.milkdown-host .milkdown-code-block .cm-tok-function { color: var(--code-function); }
+.milkdown-host .milkdown-code-block .cm-tok-type     { color: var(--code-type); }
+.milkdown-host .milkdown-code-block .cm-tok-operator { color: var(--code-operator); }
+.milkdown-host .milkdown-code-block .cm-tok-variable { color: var(--code-variable); }
+.milkdown-host .milkdown-code-block .cm-tok-builtin  { color: var(--code-builtin); }
+.milkdown-host .milkdown-code-block .cm-tok-comment  { color: var(--code-comment); font-style: italic; }
+
+/* Terminal palettes for shell and PowerShell. The blocks get a `data-language`
+   attribute from codeLanguageAttrPlugin (canonicalLanguage folds every shell /
+   PowerShell alias to one of these two keys). Pointing the block's `--code-*`
+   at the `--term-*` tokens re-tints just these languages, in both modes: the
+   vars are inherited, so the nearer block value wins over the :root defaults
+   and the account accent, giving commands, variables and strings the colours
+   a real terminal uses without touching any other language. */
+.milkdown-host .milkdown-code-block[data-language="shell"] {
+  --code-builtin:  var(--term-sh-command);   /* ls, grep, sudo        */
+  --code-keyword:  var(--term-sh-keyword);   /* if, for, then, done   */
+  --code-string:   var(--term-sh-string);    /* "quoted strings"      */
+  --code-variable: var(--term-sh-variable);  /* $VAR, ${VAR}          */
+  --code-number:   var(--term-sh-number);
+  --code-operator: var(--term-sh-operator);  /* | > && redirections   */
+  --code-function: var(--term-sh-operator);
+  --code-type:     var(--term-sh-type);
+}
+.milkdown-host .milkdown-code-block[data-language="powershell"] {
+  --code-builtin:  var(--term-ps-command);   /* Get-Item, Write-Host  */
+  --code-keyword:  var(--term-ps-keyword);   /* param, function, if   */
+  --code-variable: var(--term-ps-variable);  /* $variables            */
+  --code-string:   var(--term-ps-string);
+  --code-number:   var(--term-ps-number);
+  --code-operator: var(--term-ps-operator);
+  --code-function: var(--term-ps-command);
+  --code-type:     var(--term-ps-type);      /* [Type] accelerators   */
+  --code-comment:  var(--term-ps-comment);
+}
+
+/* The read-only History viewer renders code blocks as plain <pre>, with
+   the same filled surface. */
+.milkdown-host .milkdown .ProseMirror pre {
+  margin: 0.6em 0;
+  background-color: hsl(var(--code-bg));
+  color: var(--code-fg);
+  border: 0;
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.07);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  overflow-x: auto;
+  white-space: pre;
+  font-family: var(--font-code);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.milkdown-host .milkdown .ProseMirror pre code {
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Crepe's floating UI: slash menu, block handle, link tooltip. Menus look
+   like the app's own (Menu.tsx): popover surface, pane shadow, 4px rows,
+   tracked uppercase group labels.
+   ────────────────────────────────────────────────────────────────────── */
+.milkdown-host .milkdown .milkdown-slash-menu {
+  padding: 4px 0;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  font-family: var(--font-ui);
+  border-radius: var(--dialog-radius);
+  box-shadow: var(--pane-shadow);
+}
+.milkdown-host .milkdown .milkdown-slash-menu .tab-group {
+  padding: 4px 6px 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.milkdown-host .milkdown .milkdown-slash-menu .tab-group ul { padding: 2px 0 6px; gap: 2px; }
+.milkdown-host .milkdown .milkdown-slash-menu .tab-group ul li {
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+}
+.milkdown-host .milkdown .milkdown-slash-menu .tab-group ul li:hover { background: hsl(var(--accent)); color: hsl(var(--foreground)); }
+.milkdown-host .milkdown .milkdown-slash-menu .tab-group ul li.selected {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--foreground));
+}
+.milkdown-host .milkdown .milkdown-slash-menu .menu-groups { padding: 0 6px 4px; max-height: 360px; }
+.milkdown-host .milkdown .milkdown-slash-menu .menu-groups .menu-group h6 {
+  padding: 8px 8px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 14px;
+  color: hsl(var(--muted-foreground));
+}
+.milkdown-host .milkdown .milkdown-slash-menu .menu-groups .menu-group li {
+  min-width: 200px;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: var(--radius);
+}
+.milkdown-host .milkdown .milkdown-slash-menu .menu-groups .menu-group li.hover { background: hsl(var(--accent)); }
+.milkdown-host .milkdown .milkdown-slash-menu .menu-groups .menu-group li.active { background: hsl(var(--primary) / 0.15); }
+.milkdown-host .milkdown .milkdown-slash-menu .menu-groups .menu-group li svg {
+  width: 16px;
+  height: 16px;
+  color: hsl(var(--muted-foreground));
+  fill: hsl(var(--muted-foreground));
+}
+.milkdown-host .milkdown .milkdown-slash-menu .menu-groups .menu-group li > span {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+.milkdown-host .milkdown .milkdown-slash-menu .menu-groups .menu-group + .menu-group::before {
+  margin: 4px 2px;
+  background: hsl(var(--border));
+}
+
+/* Block handle (Blocks style only; Live hides it in live-preview.css). */
+.milkdown-host .milkdown .milkdown-block-handle .operation-item {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  border-radius: var(--radius);
+}
+.milkdown-host .milkdown .milkdown-block-handle .operation-item svg {
+  width: 20px;
+  height: 20px;
+  fill: hsl(var(--muted-foreground));
+}
+.milkdown-host .milkdown .milkdown-block-handle .operation-item:hover { background: hsl(var(--accent)); }
+.milkdown-host .milkdown .milkdown-block-handle .operation-item:hover svg { fill: hsl(var(--foreground)); }
+.milkdown-host .milkdown .milkdown-block-handle .operation-item.active { background: hsl(var(--primary) / 0.15); }
+
+/* Link preview and the inline link editor (Ctrl/Cmd+K). */
+.milkdown-host .milkdown :is(.milkdown-link-preview > .link-preview, .milkdown-link-edit > .link-edit) {
+  height: 30px;
+  align-items: center;
+  padding: 3px 6px 3px 10px;
+  gap: 4px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border-radius: var(--radius);
+  box-shadow: var(--pane-shadow);
+}
+.milkdown-host .milkdown .milkdown-link-preview > .link-preview > .link-display {
+  width: auto;
+  max-width: 260px;
+  font-size: 12px;
+  line-height: 20px;
+  color: hsl(var(--primary));
+}
+.milkdown-host .milkdown .milkdown-link-edit > .link-edit > .input-area {
+  width: 220px;
+  font-size: 12px;
+  color: hsl(var(--popover-foreground));
+  caret-color: hsl(var(--foreground));
+}
+.milkdown-host .milkdown .milkdown-link-edit > .link-edit > .input-area::placeholder { color: hsl(var(--muted-foreground)); }
+.milkdown-host .milkdown :is(.milkdown-link-preview > .link-preview, .milkdown-link-edit > .link-edit) :is(.button, .link-icon) {
+  padding: 2px;
+  border-radius: var(--radius);
+  line-height: 20px;
+}
+.milkdown-host .milkdown :is(.milkdown-link-preview > .link-preview, .milkdown-link-edit > .link-edit) :is(.button, .link-icon) svg {
+  width: 16px;
+  height: 16px;
+  color: hsl(var(--muted-foreground));
+  fill: hsl(var(--muted-foreground));
+}
+.milkdown-host .milkdown :is(.milkdown-link-preview > .link-preview, .milkdown-link-edit > .link-edit) :is(.button, .link-icon):hover { background: hsl(var(--accent)); }
+
+/* Placeholder ghost text on the current empty line. */
+.milkdown-host .milkdown .crepe-placeholder::before { color: hsl(var(--muted-foreground)); }
+
+/* ──────────────────────────────────────────────────────────────────────
+   Notion-style block selection (Esc to enter). Hides the text caret
+   and draws a highlighted ring around each selected block.
+   ────────────────────────────────────────────────────────────────────── */
+.milkdown-host .ProseMirror.block-select-mode { caret-color: transparent; }
+.milkdown-host .ProseMirror.block-select-mode ::selection { background: transparent; }
+.milkdown-host .ProseMirror .pm-block-selected {
+  border-radius: 6px;
+  background: hsl(var(--primary) / 0.14);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.40);
+}
+
+/* ── Tables ── */
+.milkdown-host .milkdown .ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.milkdown-host .milkdown .ProseMirror :is(th, td) {
+  border: 1px solid hsl(var(--border));
+  padding: 6px 10px;
+  text-align: left;
+  /* Pin the caret and the text to the foreground. Cells inherit `color` from
+     whatever they're nested in, and the shaded header sets its own
+     background: without this the caret is drawn in an inherited colour that
+     can land close enough to `--muted` to be invisible while you're typing
+     in the header row. */
+  color: hsl(var(--foreground));
+  caret-color: hsl(var(--foreground));
+}
+/* An empty cell still has to be tall enough to show a full-height caret;
+   ProseMirror's empty `<p>` would otherwise collapse to a sliver. */
+.milkdown-host .milkdown .ProseMirror :is(th, td) > p {
+  margin: 0;
+  min-height: 1.4em;
+}
+/* Shaded header: the "Table" variant. */
+.milkdown-host .milkdown .ProseMirror th {
+  background-color: hsl(var(--muted));
+  font-weight: 600;
+}
+/* "Plain table": GFM always emits a header row, so a table with no header is
+   one whose header row is blank. tableHeaderStatePlugin marks those (from the
+   DOM: Crepe's table NodeView swallows node decorations), and the blank row
+   is collapsed away so the table reads as ordinary rows with no shaded strip
+   on top. The row still exists in the document, so the markdown round-trips
+   and nothing shifts; it just takes up no space.
+
+   Type into it and the marker drops: it becomes a real header again. */
+.milkdown-host .milkdown .ProseMirror table[data-blank-header='true'] th {
+  background-color: transparent;
+  font-weight: 400;
+  padding: 0;
+  border: none;
+  height: 0;
+  line-height: 0;
+  font-size: 0;
+}
+.milkdown-host .milkdown .ProseMirror table[data-blank-header='true'] th > p {
+  min-height: 0;
+  margin: 0;
+  line-height: 0;
+}
+/* ProseMirror puts a trailing <br> in every empty paragraph; left alone it
+   would hold the collapsed row open. */
+.milkdown-host .milkdown .ProseMirror table[data-blank-header='true'] th > p > br {
+  display: none;
+}
+/* Crepe's table chrome: cell selection, drag handles and the add-row line. */
+.milkdown-host .milkdown .milkdown-table-block :is(th, td):has(.ProseMirror-selectednode) { outline-color: hsl(var(--primary)); }
+.milkdown-host .milkdown .milkdown-table-block .selectedCell::after { background-color: hsl(var(--primary)); opacity: 0.15; }
+.milkdown-host .milkdown .milkdown-table-block :is(.cell-handle, .cell-handle .button-group, .line-handle .add-button) {
+  background-color: hsl(var(--popover));
+  color: hsl(var(--muted-foreground));
+  border-radius: var(--radius);
+  box-shadow: var(--pane-shadow);
+}
+.milkdown-host .milkdown .milkdown-table-block :is(.cell-handle, .cell-handle .button-group button, .line-handle .add-button):hover { background-color: hsl(var(--accent)); }
+.milkdown-host .milkdown .milkdown-table-block svg { fill: hsl(var(--muted-foreground)); }
+.milkdown-host .milkdown .milkdown-table-block .line-handle { background-color: hsl(var(--primary)); }
+.milkdown-host .milkdown .milkdown-table-block .drag-preview {
+  background-color: hsl(var(--popover));
+  outline-color: hsl(var(--primary));
+}
+
+/* ── Images ── */
+.milkdown-host .milkdown .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+.milkdown-host .milkdown .ProseMirror img.ProseMirror-selectednode { outline: 2px solid hsl(var(--primary)); }
+
+/* Drag-to-resize images (see lib/image-resize.ts). Every image node (the
+   inline image and Crepe's `.milkdown-image-block`) carries the `pm-image`
+   class; once it has a stored width the node view element gets an inline
+   `width` and the inner <img> fills it, so dragging the corner shrinks the
+   picture. The block image's Vue view sets a fixed inline height, so we force
+   it back to auto here to keep the aspect ratio while width drives the size. */
+.milkdown-host .ProseMirror span.pm-image { display: inline-block; line-height: 0; }
+.milkdown-host .ProseMirror .pm-image.pm-img-sized { max-width: 100%; }
+.milkdown-host .ProseMirror span.pm-image.pm-img-sized img { width: 100%; height: auto; }
+/* Asset-backed note images (asset_image node): block-level, rendered from the
+   shared asset's resolved (cropped/blurred) bytes. */
+.milkdown-host .ProseMirror .asset-image { display: block; max-width: 100%; margin: 0.35rem 0; line-height: 0; }
+.milkdown-host .ProseMirror .asset-image img { display: block; max-width: 100%; height: auto; border-radius: var(--radius-sm); }
+.milkdown-host .ProseMirror .asset-image.pm-img-sized img { width: 100%; }
+/* History viewer: an image whose bytes were pruned past the retention window. */
+.milkdown-host .ProseMirror .asset-image-missing {
+  display: flex; min-height: 56px; align-items: center; justify-content: center;
+  border: 1px dashed hsl(var(--border)); border-radius: var(--radius-sm);
+}
+.milkdown-host .ProseMirror .asset-image-missing img { display: none; }
+.milkdown-host .ProseMirror .asset-image-missing::after {
+  content: "image no longer available"; font-size: 11px; color: hsl(var(--muted-foreground));
+}
+.milkdown-host .ProseMirror .milkdown-image-block.pm-img-sized .image-wrapper,
+.milkdown-host .ProseMirror .milkdown-image-block.pm-img-sized img {
+  width: 100% !important;
+  height: auto !important;
+}
+/* Page reference chip (page_ref node): an inline, clickable link to a subnote
+   created via the /page slash command. Shows the target page's live title. */
+.milkdown-host .ProseMirror .page-ref-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  background: hsl(var(--muted));
+  color: hsl(var(--primary));
+  font-size: 0.8em;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+.milkdown-host .ProseMirror .page-ref-chip:hover,
+.milkdown-host .ProseMirror .page-ref-chip.ProseMirror-selectednode {
+  background: hsl(var(--accent));
+}
+.milkdown-host .ProseMirror .page-ref-chip--missing {
+  color: hsl(var(--muted-foreground));
+  text-decoration: line-through;
+}
+/* Handle: a small square at the bottom-right corner. Shown when the image is
+   selected or hovered so the affordance is always discoverable. Purely visual
+   (pointer-events: none) - the drag is hit-tested by coordinate in the plugin,
+   so the handle never has to be clicked precisely. */
+.milkdown-host .ProseMirror .pm-image { position: relative; }
+.milkdown-host .ProseMirror .pm-image:hover,
+.milkdown-host .ProseMirror .pm-image.ProseMirror-selectednode { cursor: nwse-resize; }
+.milkdown-host .ProseMirror .pm-image:hover::after,
+.milkdown-host .ProseMirror .pm-image.ProseMirror-selectednode::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid hsl(var(--primary));
+  border-radius: 3px;
+  background: hsl(var(--background));
+  box-shadow: var(--pane-shadow);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Remote collaborator cursors (y-prosemirror): Google-Docs style.
+   ────────────────────────────────────────────────────────────────────── */
+
+.milkdown-host .ProseMirror-yjs-cursor {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  border-left-width: 2px;
+  border-left-style: solid;
+  margin-left: -1px;
+  margin-right: -1px;
+  height: 1.2em;
+  vertical-align: text-bottom;
+  pointer-events: none;
+  animation: none;
+}
+@keyframes btct-yjs-caret-blink {
+  to { border-left-color: transparent; }
+}
+.milkdown-host .ProseMirror-yjs-cursor > div {
+  position: absolute;
+  top: -1.55em;
+  left: -2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px;
+  border-radius: 6px 6px 6px 0;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 500;
+  /* Text colour comes inline from the cursor builder (readableTextOn). */
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  z-index: 5;
+}
+.milkdown-host .ProseMirror-yjs-selection {
+  border-radius: 1px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+   Version history viewer (components/history/HistoryView.tsx). The
+   read-only ProseMirror instance reuses the note styles above through the
+   .milkdown-host / .milkdown wrappers; it has no node views, so lists are
+   plain <ul>/<ol> and code blocks plain <pre>. y-prosemirror's snapshot
+   renderer marks changed nodes and runs with data-ychange-*
+   (lib/history-schema.ts) and each user's colour arrives as
+   --ychange-color.
+
+   The change tints are mixed into the editor surface, not over it, so text
+   on them stays at the editor's contrast: an insertion is a 22% wash of the
+   author's colour with a 2px underline in it, a deletion a 10% wash with a
+   strike-through and muted text.
+   ────────────────────────────────────────────────────────────────────── */
+.history-viewer .milkdown .ProseMirror { min-height: 200px; }
+.history-viewer .milkdown .ProseMirror :is(ul, ol) { padding-left: 1.5em; }
+.history-viewer .milkdown .ProseMirror ul > li { list-style: disc; }
+.history-viewer .milkdown .ProseMirror ol > li { list-style: decimal; }
+.history-viewer .milkdown .ProseMirror li::marker { color: hsl(var(--muted-foreground)); }
+.history-viewer .milkdown .ProseMirror li[data-item-type="task"] { list-style: none; }
+.history-viewer .milkdown .ProseMirror li[data-item-type="task"]::before {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin: 0 0.45em 0 -1.25em;
+  vertical-align: -0.05em;
+  border: 1.5px solid hsl(var(--muted-foreground));
+  border-radius: var(--radius-sm);
+}
+.history-viewer .milkdown .ProseMirror li[data-item-type="task"][data-checked="true"]::before {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+}
+.history-viewer .milkdown .ProseMirror li[data-item-type="task"] > p { display: inline; }
+.history-viewer [data-ychange-type="added"] {
+  background: color-mix(in srgb, var(--ychange-color, hsl(var(--status-amber))) 22%, hsl(var(--editor-bg)));
+  box-shadow: inset 0 -2px 0 var(--ychange-color, hsl(var(--status-amber)));
+  border-radius: 2px;
+}
+.history-viewer [data-ychange-type="removed"] {
+  text-decoration: line-through;
+  text-decoration-color: var(--ychange-color, hsl(var(--status-amber)));
+  text-decoration-thickness: 2px;
+  color: hsl(var(--muted-foreground));
+  background: color-mix(in srgb, var(--ychange-color, hsl(var(--status-amber))) 10%, hsl(var(--editor-bg)));
+  border-radius: 2px;
+}
+/* Inline code inside a changed run keeps its chip but takes the tint. */
+.history-viewer [data-ychange-type] code { background: transparent; }
+/* Block-level changes: a coloured bar in the margin instead of a full wash. */
+.history-viewer .ProseMirror > [data-ychange-type] {
+  background: transparent;
+  box-shadow: none;
+  border-left: 3px solid var(--ychange-color, hsl(var(--status-amber)));
+  padding-left: 0.6em;
+  margin-left: -0.6em;
+}
+.history-viewer .ProseMirror > [data-ychange-type="removed"] { opacity: 0.7; }
+
+/* ──────────────────────────────────────────────────────────────────────
+   Native controls follow the theme. Without a color-scheme the browser
+   paints every popup it owns (select lists, date and colour pickers,
+   number spinners, scrollbars) in its light scheme regardless of the dark
+   surface it sits on. Selects also drop the platform arrow for the app's
+   own chevron so they read like the other fields.
+   ────────────────────────────────────────────────────────────────────── */
+/* color-scheme is declared with the mode tokens in themes/tokens.css. */
+
+@layer base {
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 1.75rem;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 12px 12px;
+  cursor: pointer;
+}
+.dark select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+}
+select option {
+  background-color: hsl(var(--popover));
+  color: hsl(var(--foreground));
+}
+/* Sliders, checkboxes, radios and the date/colour pickers pick up the accent. */
+input[type="range"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="date"],
+input[type="datetime-local"] {
+  accent-color: hsl(var(--primary));
+}
+input[type="range"] { cursor: pointer; }
+input[type="color"] {
+  padding: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--card));
+  cursor: pointer;
+}
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 3px; }
+input[type="number"]::-webkit-inner-spin-button { opacity: 0.6; }
+}

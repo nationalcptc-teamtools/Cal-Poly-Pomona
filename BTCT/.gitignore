@@ -1,0 +1,48 @@
+node_modules
+dist/
+# Scheduled backups written by the app (docker-compose bind mount)
+backups/
+server/backups/
+
+# Local isolated preview credentials and artifacts
+.preview/
+.env.preview
+
+# Local (non-Docker) run: sqlite, yjs leveldb, history twins, backups.
+.localrun/
+
+# Fonts staged at build time by `bun run fonts` (scripts/fonts.ts).
+public/fonts/
+
+# The Word export's Python side: bytecode, and a virtualenv made by hand
+# when running from source instead of Docker (see the requirements file).
+__pycache__/
+*.pyc
+.venv-pdf2docx/
+# Scratch output of the converter scoring work.
+.scratch/
+
+# Secrets. .env holds AUTH_SECRET and is written per box by install-btct.sh
+# (or by hand); it was tracked once, so any value from git history must be
+# treated as public. The two examples are templates without a real secret.
+.env
+.env.*
+!.env.example
+!.env.docker.example
+tls/
+*.pem
+
+# Local build and typecheck output, and stray scratch files.
+build.log
+tsc-out.txt
+*.log
+.__*
+testxml/
+dist-*/
+
+# competition-day.sh / save-btct-image.sh: the USB image and the --limits override.
+btct-image.tar.gz*
+docker-compose.override.yml
+
+# btct update: which commit the running image was built from (per box).
+.btct-update
